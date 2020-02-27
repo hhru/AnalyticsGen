@@ -1,0 +1,84 @@
+{% include "FileHeader.stencil" %}
+
+import Foundation
+
+// MARK: - EventData
+
+struct EventData {
+
+    // MARK: - Instance Properties
+
+    let name: String
+    let parameters: [String: Any]
+}
+
+// MARK: - EncodableEvent
+
+protocol EncodableEvent: AnalyticsEvent {
+
+    // MARK: - Instance Methods
+
+    func encode() -> EventData
+}
+
+{% for tracker in trackers %}
+
+// MARK: - {{ tracker.name }}EventTracker
+
+import {{ tracker.import }}
+
+class {{ tracker.name }}EventTracker: AnalyticsEventTracker {
+
+    // MARK: - AnalyticsEventTracker
+
+    func trackEvent(_ event: AnalyticsEvent) {
+        guard let event = event as? EncodableEvent else {
+            return
+        }
+
+        let data = event.encode()
+
+        {% if tracker.name == "Flurry" %}
+        Flurry.logEvent(data.name, withParameters: data.parameters)
+        {% elif tracker.name == "Firebase" %}
+        Analytics.logEvent(data.name, parameters: data.parameters)
+        {% endif %}
+    }
+}
+
+{% for event in tracker.events %}
+
+// MARK: - {{ event.name }}Event
+
+/// {{ event.description }}
+struct {{ event.name }}Event {
+
+    // MARK: - Instance Properties
+
+    let name = "{{ event.name }}"
+    {% for parameter in event.parameters %}
+    
+    /// {{ parameter.description }}
+    let {{ parameter.name }}: {{ parameter.type }}{% if parameter.isOptional %}?{% endif %}
+    {% endfor %}
+}
+
+// MARK: - EncodableEvent
+
+extension {{ event.name }}Event: EncodableEvent {
+
+    // MARK: - Instance Methods
+
+    func encode() -> EventData {
+        let parameters: [String: Any] = [
+            {% for parameter in event.parameters %}
+            "{{ parameter.name }}": self.{{ parameter.name }},
+            {% endfor %}
+        ]
+
+        return EventData(name: self.name, parameters: parameters)
+    }
+}
+
+{% endfor %}
+{% endfor %}

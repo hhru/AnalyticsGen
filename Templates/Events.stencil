@@ -1,0 +1,39 @@
+{% include "FileHeader.stencil" %}
+
+import Foundation
+
+{% for event in events %}
+
+// MARK: - {{ event.name }}Event
+
+/// {{ event.description }}
+struct {{ event.name }}Event {
+
+    // MARK: - Instance Properties
+
+    let name = "{{ event.name }}"
+
+    {% for parameter in {{ event.parameters }} %}
+    /// {{ parameter.description }}
+    let {{ parameter.name }}: {{ parameter.type }}{% if parameter.isOptional %}?{% endif %}
+    {% endfor %}
+}
+
+// MARK: - EncodableEvent
+
+extension {{ event.name }}Event: EncodableEvent {
+
+    // MARK: - Instance Methods
+
+    func encode() -> EventData {
+        let parameters: [String: Any] = [
+            {% for parameter in {{ event.parameters}} %}
+            "{{ parameter.name }}": self.{{ parameter.name }},
+            {% endfor %}
+        ]
+        
+        return EventData(name: self.name, parameters: parameters)
+    }
+}
+
+{% endfor %}
