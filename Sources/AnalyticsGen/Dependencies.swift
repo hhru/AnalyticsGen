@@ -26,18 +26,12 @@ enum Dependencies {
 
     // MARK: -
 
-    static let decodableTracker: DecodableCoder = DefaultDecodableCoder()
-    static let trackerCoder: TrackerCoder = DefaultTrackerCoder(decodableCoder: Dependencies.decodableTracker)
-
-    // MARK: -
-
     static let templateRenderer: TemplateRenderer = DefaultTemplateRenderer()
 
     // MARK: -
 
     static let trackersGenerator: TrackersGenerator = DefaultTrackersGenerator(
         analyticsTrackersProvider: Dependencies.analyticsTrackersProvider,
-        trackerCoder: Dependencies.trackerCoder,
         templateRenderer: Dependencies.templateRenderer
     )
 }

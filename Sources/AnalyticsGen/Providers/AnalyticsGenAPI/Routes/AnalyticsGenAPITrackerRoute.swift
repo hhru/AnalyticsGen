@@ -11,13 +11,13 @@ struct AnalyticsGenAPITrackerRoute: AnalyticsGenAPIRoute {
 
     // MARK: - Nested Types
 
-    typealias Response = [Tracker]
+    typealias Response = GenerationDTO
     typealias QueryParameters = AnalyticsGenAPIEmptyParameters
     typealias BodyParameters = AnalyticsGenAPIEmptyParameters
 
     // MARK: - Instance Properties
 
     var urlPath: String {
-        "tracker"
+        "tracker/generation"
     }
 }

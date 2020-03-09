@@ -14,5 +14,4 @@ struct Tracker: Codable {
     let id: Int
     let name: String
     let `import`: String
-    let events: [Event]
 }

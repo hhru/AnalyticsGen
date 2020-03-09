@@ -22,7 +22,7 @@ final class DefaultAnalyticsTrackersProvider: AnalyticsTrackersProvider {
 
     // MARK: - AnalyticsTrackersProvider
 
-    func fetchAnalyticsTrackers() -> Promise<[Tracker]> {
+    func fetchAnalyticsTrackers() -> Promise<GenerationDTO> {
         let route = AnalyticsGenAPITrackerRoute()
 
         let promise = firstly {

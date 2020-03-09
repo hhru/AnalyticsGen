@@ -14,5 +14,6 @@ struct Event: Codable {
     let id: Int
     let name: String
     let description: String
+    let trackerNames: [String]
     let parameters: [Parameter]
 }

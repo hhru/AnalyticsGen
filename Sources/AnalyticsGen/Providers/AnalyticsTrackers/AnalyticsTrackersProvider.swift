@@ -12,5 +12,5 @@ protocol AnalyticsTrackersProvider {
 
     // MARK: - Instance Methods
 
-    func fetchAnalyticsTrackers() -> Promise<[Tracker]>
+    func fetchAnalyticsTrackers() -> Promise<GenerationDTO>
 }

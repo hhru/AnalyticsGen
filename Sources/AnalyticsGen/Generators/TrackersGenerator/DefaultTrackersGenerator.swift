@@ -8,13 +8,13 @@
 import Foundation
 import AnalyticsGenTools
 import PromiseKit
+import DictionaryCoder
 
 final class DefaultTrackersGenerator: TrackersGenerator, GenerationParametersResolving {
 
     // MARK: - Instance Properties
 
     let analyticsTrackersProvider: AnalyticsTrackersProvider
-    let trackerCoder: TrackerCoder
     let templateRenderer: TemplateRenderer
 
     // MARK: -
@@ -26,11 +26,9 @@ final class DefaultTrackersGenerator: TrackersGenerator, GenerationParametersRes
 
     init(
         analyticsTrackersProvider: AnalyticsTrackersProvider,
-        trackerCoder: TrackerCoder,
         templateRenderer: TemplateRenderer
     ) {
         self.analyticsTrackersProvider = analyticsTrackersProvider
-        self.trackerCoder = trackerCoder
         self.templateRenderer = templateRenderer
     }
 
@@ -39,8 +37,8 @@ final class DefaultTrackersGenerator: TrackersGenerator, GenerationParametersRes
     private func generate(parameters: GenerationParameters) -> Promise<Void> {
         return firstly {
             self.analyticsTrackersProvider.fetchAnalyticsTrackers()
-        }.done { trackers in
-            let context = self.trackerCoder.encode(trackers: trackers)
+        }.done { generationDTO in
+            let context = try DictionaryEncoder().encode(generationDTO)
 
             try self.templateRenderer.render(
                 template: parameters.render.template,

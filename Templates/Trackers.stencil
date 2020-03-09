@@ -2,6 +2,18 @@
 
 import Foundation
 
+// MARK: - AnalyticsEvent
+
+/// Протокол события
+protocol AnalyticsEvent { }
+
+// MARK: - AnalyticsEventTracker
+
+/// Протокол трекера аналитики, который может отправлять
+protocol AnalyticsEventTracker {
+    func trackEvent(_ event: AnalyticsEvent)
+}
+
 // MARK: - EventData
 
 struct EventData {
@@ -22,17 +34,20 @@ protocol EncodableEvent: AnalyticsEvent {
 }
 
 {% for tracker in trackers %}
+import {{ tracker.import }}
+
+// MARK: - {{ tracker.name }}AnalyticsEvent
+
+protocol {{ tracker.name }}AnalyticsEvent: EncodableEvent { }
 
 // MARK: - {{ tracker.name }}EventTracker
-
-import {{ tracker.import }}
 
 class {{ tracker.name }}EventTracker: AnalyticsEventTracker {
 
     // MARK: - AnalyticsEventTracker
 
     func trackEvent(_ event: AnalyticsEvent) {
-        guard let event = event as? EncodableEvent else {
+        guard let event = event as? {{ tracker.name }}AnalyticsEvent else {
             return
         }
 
@@ -46,8 +61,8 @@ class {{ tracker.name }}EventTracker: AnalyticsEventTracker {
     }
 }
 
-{% for event in tracker.events %}
-
+{% endfor %}
+{% for event in events %}
 // MARK: - {{ event.name }}Event
 
 /// {{ event.description }}
@@ -56,8 +71,9 @@ struct {{ event.name }}Event {
     // MARK: - Instance Properties
 
     let name = "{{ event.name }}"
+
     {% for parameter in event.parameters %}
-    
+
     /// {{ parameter.description }}
     let {{ parameter.name }}: {{ parameter.type }}{% if parameter.isOptional %}?{% endif %}
     {% endfor %}
@@ -80,5 +96,9 @@ extension {{ event.name }}Event: EncodableEvent {
     }
 }
 
+{% for trackerName in event.trackerNames %}
+// MARK: - {{ trackerName }}AnalyticsEvent
+
+extension {{ event.name }}Event: {{ trackerName }}AnalyticsEvent { }
 {% endfor %}
 {% endfor %}

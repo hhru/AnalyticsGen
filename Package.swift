@@ -14,7 +14,8 @@ let package = Package(
         .package(url: "https://github.com/onevcat/Rainbow", from: "3.0.0"),
         .package(url: "https://github.com/mxcl/PromiseKit", from: "6.8.0"),
         .package(url: "https://github.com/kylef/Stencil.git", from: "0.13.0"),
-        .package(url: "https://github.com/SwiftGen/StencilSwiftKit.git", from: "2.7.2")
+        .package(url: "https://github.com/SwiftGen/StencilSwiftKit.git", from: "2.7.2"),
+        .package(url: "https://github.com/almazrafi/DictionaryCoder.git", from: "1.0.2")
     ],
     targets: [
         .target(
@@ -26,7 +27,8 @@ let package = Package(
                 "Rainbow",
                 "PromiseKit",
                 "Stencil",
-                "StencilSwiftKit"
+                "StencilSwiftKit",
+                "DictionaryCoder"
             ]
         ),
         .target(
