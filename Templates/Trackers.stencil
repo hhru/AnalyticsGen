@@ -14,6 +14,30 @@ protocol AnalyticsEventTracker {
     func trackEvent(_ event: AnalyticsEvent)
 }
 
+// MARK: - Analytics
+
+/// Точка входа в аналитику, хранит все трекеры и распределяет события по ним.
+class Analytics {
+
+    // MARK: - Instance Properties
+
+    let eventTrackers: [AnalyticsEventTracker]
+
+    // MARK: - Initializers
+
+    init(eventTrackers: [AnalyticsEventTracker]) {
+        self.eventTrackers = eventTrackers
+    }
+
+    // MARK: - Instance Methods
+
+    func track(_ event: AnalyticsEvent) {
+        self.eventTrackers.forEach { eventTracker in
+            eventTracker.trackEvent(event)
+        }
+    }
+}
+
 // MARK: - EventData
 
 struct EventData {
