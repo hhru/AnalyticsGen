@@ -1,20 +1,18 @@
 import Foundation
 import SwiftCLI
 
-// MARK: - Constants
+let analyticsGen = CLI(name: "AnalyticsGen", version: .version, description: .description)
 
-private enum Constants {
+analyticsGen.commands = []
+
+analyticsGen.goAndExitOnError()
+
+// MARK: -
+
+private extension String {
 
     // MARK: - Type Properties
 
     static let version = "0.1.0"
     static let description = "Generate analytics code for you Swift iOS project"
 }
-
-let analyticsGen = CLI(name: "AnalyticsGen", version: Constants.version, description: Constants.description)
-
-analyticsGen.commands = [
-    TrackersCommand(generator: Dependencies.trackersGenerator)
-]
-
-analyticsGen.goAndExitOnError()
