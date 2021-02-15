@@ -1,10 +1,3 @@
-//
-//  AsyncExecutableCommand.swift
-//  AnalyticsGen
-//
-//  Created by Timur Shafigullin on 12/01/2020.
-//
-
 import Foundation
 import SwiftCLI
 import Rainbow
@@ -19,26 +12,24 @@ protocol AsyncExecutableCommand: Command {
     func succeed(message: String) -> Never
 }
 
-// MARK: -
-
 extension AsyncExecutableCommand {
 
     // MARK: - Instance Methods
 
     func execute() throws {
-        try self.executeAsyncAndExit()
+        try executeAsyncAndExit()
 
         RunLoop.main.run()
     }
 
     func fail(message: String) -> Never {
-        self.stderr <<< message.red
+        stderr <<< message.red
 
         exit(EXIT_FAILURE)
     }
 
     func succeed(message: String) -> Never {
-        self.stdout <<< message.green
+        stdout <<< message.green
 
         exit(EXIT_SUCCESS)
     }
