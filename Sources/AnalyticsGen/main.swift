@@ -4,7 +4,7 @@ import SwiftCLI
 let analyticsGen = CLI(name: "AnalyticsGen", version: .version, description: .description)
 
 analyticsGen.commands = [
-    GenerateCommand()
+    GenerateCommand(generator: Dependencies.eventGenerator)
 ]
 
 analyticsGen.goAndExitOnError()

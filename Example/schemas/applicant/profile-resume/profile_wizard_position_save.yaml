@@ -1,0 +1,25 @@
+name: Пользователь выбрал должность
+description: >
+  Пользователь выбрал должность, он мог сделать это как в форме через накликивание (`type == tag`)
+  В форме подсказки должности либо выбрать подходящий вариант (`type == suggest`) или же ввести
+  что-то свое руками (`type == manual`)
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: button_click
+  platform: Android
+
+  buttonName:
+    const: profile_wizard_position_save
+    description: Пользователь выбрал должность
+
+  type:
+    description: Тип экрана выбора должности
+    oneOf:
+    - name: tag
+      description: экран накликивания
+    - name: suggest
+      description: экран подсказки + выбрали подсказку (не ручной ввод)
+    - name: manual
+      description: кран подсказки ручной ввод

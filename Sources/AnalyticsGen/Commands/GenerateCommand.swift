@@ -1,5 +1,6 @@
 import Foundation
 import SwiftCLI
+import PromiseKit
 
 final class GenerateCommand: AsyncExecutableCommand {
 
@@ -17,12 +18,26 @@ final class GenerateCommand: AsyncExecutableCommand {
             """
     )
 
+    let generator: EventGenerator
+
+    // MARK: - Initializers
+
+    init(generator: EventGenerator) {
+        self.generator = generator
+    }
+
     // MARK: - AsyncExecutableCommand
 
     func executeAsyncAndExit() throws {
         let configurationPath = self.configurationPath.value ?? .defaultConfigurationPath
 
-        succeed(message: "Configuration path: \(configurationPath)")
+        firstly {
+            generator.generate(configurationPath: configurationPath)
+        }.done {
+            self.succeed(message: "Generation completed successfully!")
+        }.catch { error in
+            self.fail(message: "Failed to generate with error: \(error)")
+        }
     }
 }
 

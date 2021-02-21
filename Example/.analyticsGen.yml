@@ -1,0 +1,5 @@
+source:
+  local: "schemas"
+  gitHub: "https://github.com/hhru/hh-mobile-analytics/tree/master/schemas"
+
+output: "generated"
