@@ -1,0 +1,13 @@
+---
+name: Резюме скопировано
+description: Пользователь нажал на "Дублировать резюме" и успешно создалась копия резюме
+category: Профиль-резюме
+application: applicant
+
+external:
+  category: applicant
+  action: resume-copied
+  label:
+    oneOf:
+      - name: copy-created
+        description: Пользователь нажал на "Дублировать резюме" и успешно создалась копия резюме

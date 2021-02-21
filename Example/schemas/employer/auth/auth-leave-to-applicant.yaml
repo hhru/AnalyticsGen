@@ -1,0 +1,16 @@
+name: >
+  Пользователь ушел по ссылке в соискательское приложение
+description: >
+  Пользователь ушел по ссылке в соискательское приложение
+category: auth
+application: employer
+
+external:
+  category: anonymous
+  action: leave-b2b-success
+  label:
+    oneOf:
+    - name: native
+      description: label нажатия нативной кнопки
+  platform: Android
+  forContractor: False
