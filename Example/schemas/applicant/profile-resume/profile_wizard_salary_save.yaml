@@ -1,0 +1,22 @@
+name: Пользователь сохранил зарплату
+description: >
+  Нажали кнопку сохранить запралту на экране "Желаемая зарплата"
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: button_click
+  platform: Android
+
+  buttonName:
+    const: profile_wizard_salary_save
+    description: Пользователь выбрал запрлату
+
+  salary:
+    type: int
+    description: Сумма введенная на экране
+
+  currency:
+    type: string
+    description: валюта введеная на экране
+

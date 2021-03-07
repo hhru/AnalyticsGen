@@ -1,0 +1,115 @@
+---
+"$schema": http://json-schema.org/draft-09/schema#
+definitions:
+
+  # Спецификация событий внешней аналитики
+  external:
+    type: object
+    properties:
+      # Категория события
+      category:
+        type: string
+        enum: [anonymous, applicant, anonymous/applicant, employer]
+      # Action события
+      action:
+        type: string
+      # Label события
+      label:
+        type: object
+        properties:
+          oneOf:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+              required:
+                - name
+                - description
+        required:
+          - oneOf
+      # Флаг события для подрядчиков
+      forContractor:
+        type: boolean
+      # Платформа
+      platform:
+        type: string
+        enum: [Android, Android/iOS, iOS]
+    required:
+      - category
+      - action
+    additionalProperties: false
+
+  # Спецификация событий внутренней аналитики
+  internal:
+    type: object
+    properties:
+      # Наименование события
+      event:
+        type: string
+      # SQL
+      sql:
+        type: string
+      # Платформа
+      platform:
+        type: string
+        enum: [Android, iOS, Android/iOS]
+    required:
+      - event
+
+  # Событие внешней и внутренней аналитики
+  event:
+    type: object
+    properties:
+      # Контекст событий
+      application:
+        type: string
+        enum: [applicant, employer]
+      # Эксперимент
+      experiment:
+        type: object
+        properties:
+          url:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+        required:
+          - url
+          - description
+      # Имя события
+      name:
+        type: string
+      # Описание события
+      description:
+        type: string
+      # Категория события
+      category:
+        type: string
+      # Событие внешней аналитики
+      external:
+        "$ref": "#/definitions/external"
+      # Событие внутренней аналитики
+      internal:
+        "$ref": "#/definitions/internal"
+    anyOf:
+      - required:
+          - name
+          - application
+          - category
+          - description
+          - external
+      - required:
+          - name
+          - application
+          - category
+          - description
+          - internal
+    additionalProperties: true
+
+oneOf:
+  - "$ref": "#/definitions/event"
