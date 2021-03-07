@@ -1,0 +1,20 @@
+name: Пользователь открыл экран "Желаемая должность"
+description:  Пользователь открыл экран "Желаемая должность" в новом формате
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: screenShown
+  platform: Android
+
+  screenName:
+    const: profile_wizard_position
+    description: Пользователь открыл экран "Желаемая должность"
+
+  currentStepNumber:
+    description: Номер текущего шага
+    type: int
+
+  totalStepsCount:
+      description: Общее количество шагов в визарде
+      type: int
