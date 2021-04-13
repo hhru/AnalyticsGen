@@ -1,0 +1,4 @@
+{% include "FileHeader.stencil" %}
+import Foundation
+
+public protocol AnalyticsParameter { }

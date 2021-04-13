@@ -3,3 +3,4 @@ source:
   local: "/Users/t.shafigullin/Desktop/Swift/AnalyticsGen/Example/schemas"
   gitHub: "https://github.com/hhru/hh-mobile-analytics/tree/master/schemas"
 output: "generated"
+template: ""

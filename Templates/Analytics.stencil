@@ -1,0 +1,46 @@
+{% include "FileHeader.stencil" %}
+import Foundation
+
+public enum Analytics {
+
+    // MARK: - Instance Properties
+
+    private static var analyticsTrackers: [AnyAnalyticsTracker] = []
+
+    // MARK: - Type Methods
+
+    private static func action(_ action: @escaping (AnyAnalyticsTracker) -> Bool, withDescription description: String) {
+        let usedTrackers = analyticsTrackers.filter { action($0) }
+
+        guard !usedTrackers.isEmpty else {
+            return
+        }
+
+        let usedTrackerNames = usedTrackers.map { $0.analyticsName }.joined(separator: ", ")
+        let message = "Analytics: [\(usedTrackerNames)] \(description)"
+
+        print(message)
+    }
+
+    // MARK: -
+
+    public static func register(tracker: AnyAnalyticsTracker) {
+        if !analyticsTrackers.contains(where: { $0.analyticsName == tracker.analyticsName }) {
+            analyticsTrackers.append(tracker)
+        }
+    }
+
+    public static func unregister(tracker: AnyAnalyticsTracker) {
+        if let index = analyticsTrackers.firstIndex(where: { $0.analyticsName == tracker.analyticsName }) {
+            analyticsTrackers.remove(at: index)
+        }
+    }
+
+    public static func trackEvent(_ event: AnalyticsEvent) {
+        action({ $0.track(event: event) }, withDescription: "track event \(event)")
+    }
+
+    public static func setParameter(_ parameter: AnalyticsParameter) {
+        action({ $0.setParameter(parameter) }, withDescription: "set patameter \(parameter)")
+    }
+}

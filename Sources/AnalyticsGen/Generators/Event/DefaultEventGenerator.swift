@@ -3,6 +3,7 @@ import PromiseKit
 import Yams
 import AnalyticsGenTools
 import JSONSchema
+import DictionaryCoder
 
 final class DefaultEventGenerator: EventGenerator {
 
@@ -11,20 +12,30 @@ final class DefaultEventGenerator: EventGenerator {
     let configurationProvider: ConfigurationProvider
     let specificationProvider: SpecificationProvider
     let schemaProvider: SchemaProvider
+    let templateRenderer: TemplateRenderer
+    let dictionaryDecoder: DictionaryDecoder
 
     // MARK: - Initializers
 
     init(
         configurationProvider: ConfigurationProvider,
         specificationProvider: SpecificationProvider,
-        schemaProvider: SchemaProvider
+        schemaProvider: SchemaProvider,
+        templateRenderer: TemplateRenderer,
+        dictionaryDecoder: DictionaryDecoder
     ) {
         self.configurationProvider = configurationProvider
         self.specificationProvider = specificationProvider
         self.schemaProvider = schemaProvider
+        self.templateRenderer = templateRenderer
+        self.dictionaryDecoder = dictionaryDecoder
     }
 
-    private func validateSchemas(configuration: Configuration, specification: Specification) throws {
+    private func generate(event: Event, outputPath: String) {
+        print(event)
+    }
+
+    private func generate(configuration: Configuration, specification: Specification) throws {
         guard let schemasPath = configuration.source?.local else {
             return
         }
@@ -43,11 +54,17 @@ final class DefaultEventGenerator: EventGenerator {
 
             let schema = try schemaProvider.fetchSchema(from: path)
 
+            // Возможно, валидация схемы не нужна, так как ниже декодим по модели Event,
+            // которая описывает спецификацию
             if let errors = JSONSchema.validate(schema, schema: specification).errors {
                 throw MessageError(errors.joined(separator: "\n"))
             }
 
+            let event = try dictionaryDecoder.decode(Event.self, from: schema)
+
             Log.success("File \(path) is valid")
+
+            generate(event: event, outputPath: "")
         }
     }
 
@@ -61,7 +78,7 @@ final class DefaultEventGenerator: EventGenerator {
                 .fetchSpecification(from: configuration.specification)
                 .map { (configuration, $0) }
         }.done { configuration, specification in
-            try self.validateSchemas(configuration: configuration, specification: specification)
+            try self.generate(configuration: configuration, specification: specification)
         }
     }
 }

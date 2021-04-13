@@ -1,0 +1,40 @@
+{% include "FileHeader.stencil" %}
+import Foundation
+
+public protocol AnalyticsTracker: AnyAnalyticsTracker {
+
+    // MARK: - Nested Types
+
+    associatedtype Event
+    associatedtype Parameter
+
+    // MARK: - Instance Methods
+
+    func track(event: Event)
+    func setParameter(_ parameter: Parameter)
+}
+
+extension AnalyticsTracker {
+
+    // MARK: - Instance Methods
+
+    public func track(event: AnalyticsEvent) -> Bool {
+        guard let event = event as? Event else {
+            return false
+        }
+
+        track(event: event)
+
+        return true
+    }
+
+    public func setParameter(_ parameter: AnalyticsParameter) -> Bool {
+        guard let parameter = parameter as? Parameter else {
+            return false
+        }
+
+        setParameter(parameter)
+
+        return true
+    }
+}

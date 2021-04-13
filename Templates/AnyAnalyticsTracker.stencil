@@ -1,0 +1,14 @@
+{% include "FileHeader.stencil" %}
+import Foundation
+
+public protocol AnyAnalyticsTracker {
+
+    // MARK: - Instance Properties
+
+    var analyticsName: String { get }
+
+    // MARK: - Instance Methods
+
+    func track(event: AnalyticsEvent) -> Bool
+    func setParameter(_ parameter: AnalyticsParameter) -> Bool
+}
