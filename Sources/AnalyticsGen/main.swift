@@ -1,5 +1,10 @@
 import Foundation
 import SwiftCLI
+import PathKit
+
+#if DEBUG
+Path.current = Path(#file).appending("../../../Example")
+#endif
 
 let analyticsGen = CLI(name: "AnalyticsGen", version: .version, description: .description)
 

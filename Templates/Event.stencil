@@ -1,54 +1,52 @@
 {% include "FileHeader.stencil" %}
-{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
-import Foundation
 
-struct EventContext: Encodable {
+import Analytics
 
-	enum Platform: String, Encodable {
-	    case android = "Android"
-	    case androidIOS = "Android/iOS"
-	    case iOS = "iOS"
-	}
+/// **Название**: {{ event.name }}
+/// **Описание**: {{ event.description }}
+/// **Категория**: {{ event.category }}
+struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
-	struct Internal: Encodable {
-		let event: String
-		let platform: Platform?
-		let sql: String?
-	}
+    enum ParameterKeys: String {
+        {% for parameter in event.internal.parameters %}
+        case {{ parameter.name }}
+        {% endfor %}
+    }
 
-	struct ConstantParameter {
-		let name: String
-		let const: String
-		let description: String
-	}
+    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
+    enum `{{ parameter.name|capitalize }}`: String {
+        {% for oneOf in parameter.type.oneOf %}
+        /// {{ oneOf.description }}
+        case {{ oneOf.name }}
+        {% if not forloop.last %}
 
-	struct DynamicParameter {
-		let name: String
-		let description: String
-		let type: String
-	}
+        {% endif %}
+        {% endfor %}
+    }
 
-	let name: String
-	let description: String
-	let trackers: [String]
-	let eventName: String
-	let constantParameters: [ConstParamter]
-	let dynamicParameters: [DynamicParameter]
-}
+    {% endfor %}
+    let eventName = "{{ event.internal.event }}"
 
-/// {{ description }}
-{{ accessModifier }} struct {{ name }}: {{ trackers|join:", " }} {
+    {% for parameter in event.internal.parameters where parameter.type.const %}
+    /// {{ parameter.description }}
+    let {{ parameter.name }} = "{{ parameter.type.const }}"
 
-	// MARK: - Instance Properties	
+    {% endfor %}
+    {% for parameter in event.internal.parameters where parameter.type.type %}
+    /// {{ parameter.description }}
+    let {{ parameter.name }}: {{ parameter.type.type|capitalize }}
 
-	let eventName = "{{ eventName }}"
-{% for parameter in constantParameters %}	
-	/// {{ parameter.description }}
-	let {{ parameter.name }} = "{{ parameter.const }}"
-{% endfor %}
+    {% endfor %}
+    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
+    /// {{ parameter.description }}
+    let {{ parameter.name }}: {{ parameter.name|capitalize }}
 
-{% for parameter in dynamicParameters %}
-	/// {{ parameter.description }}
-	let {{ parameter.name }}: {{ parameter.type }}
-{% endfor %}
+    {% endfor %}
+    var parameters: [ParameterKeys: Any] {
+        [
+            {% for parameter in event.internal.parameters %}
+            .{{ parameter.name }}: {{ parameter.name }}{% if parameter.type.oneOf %}.rawValue{% endif %}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
 }

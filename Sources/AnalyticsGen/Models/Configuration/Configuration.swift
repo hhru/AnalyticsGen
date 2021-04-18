@@ -1,4 +1,5 @@
 import Foundation
+import AnalyticsGenTools
 
 struct Configuration: Decodable {
 
@@ -6,5 +7,7 @@ struct Configuration: Decodable {
 
     let specification: String
     let source: SourceConfiguration?
-    let output: String?
+    let destination: String?
+    let template: String?
+    let templateOptions: [String: AnyCodable]?
 }

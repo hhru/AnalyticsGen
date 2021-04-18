@@ -1,0 +1,14 @@
+---
+name: Нажатие на кнопку "Подтвердить номер" (баннер на профиле)
+description: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме. 
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: button_click
+  hhtmSource:
+    const: resume
+    description: Экран Профиль-резюме
+  buttonName:
+    const: phone_verification_banner
+    description: Баннер "Подтвердить номер телефона"
