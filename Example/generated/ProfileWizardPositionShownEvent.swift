@@ -9,9 +9,9 @@ import Analytics
 struct ProfileWizardPositionShownEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {
-        case totalStepsCount
-        case currentStepNumber
         case screenName
+        case currentStepNumber
+        case totalStepsCount
     }
 
     let eventName = "screenShown"
@@ -19,17 +19,17 @@ struct ProfileWizardPositionShownEvent: ParametrizedInternalAnalyticsEvent, Slas
     /// Пользователь открыл экран "Желаемая должность"
     let screenName = "profile_wizard_position"
 
-    /// Общее количество шагов в визарде
-    let totalStepsCount: Int
-
     /// Номер текущего шага
     let currentStepNumber: Int
 
+    /// Общее количество шагов в визарде
+    let totalStepsCount: Int
+
     var parameters: [ParameterKeys: Any] {
         [
-            .totalStepsCount: totalStepsCount,
+            .screenName: screenName,
             .currentStepNumber: currentStepNumber,
-            .screenName: screenName
+            .totalStepsCount: totalStepsCount
         ]
     }
 }

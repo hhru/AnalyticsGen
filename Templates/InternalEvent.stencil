@@ -1,0 +1,54 @@
+{% include "FileHeader.stencil" %}
+{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
+{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|capitalize|escapeReservedKeywords }}{% endmacro %}
+
+import Analytics
+
+/// **Название**: {{ event.name }}
+/// **Описание**: {{ event.description }}
+/// **Категория**: {{ event.category }}
+struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+
+    enum ParameterKeys: String {
+        {% for parameter in event.internal.parameters %}
+        case {% call propertyName parameter.name %}
+        {% endfor %}
+    }
+
+    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
+    enum {% call enumName parameter.name %}: String {
+        {% for oneOf in parameter.type.oneOf %}
+        /// {{ oneOf.description }}
+        case {% call propertyName oneOf.name %}
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+
+    {% endfor %}
+    let eventName = "{{ event.internal.event }}"
+
+    {% for parameter in event.internal.parameters where parameter.type.const %}
+    /// {{ parameter.description }}
+    let {% call propertyName parameter.name %} = "{{ parameter.type.const }}"
+
+    {% endfor %}
+    {% for parameter in event.internal.parameters where parameter.type.type %}
+    /// {{ parameter.description }}
+    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize }}
+
+    {% endfor %}
+    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
+    /// {{ parameter.description }}
+    let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
+
+    {% endfor %}
+    var parameters: [ParameterKeys: Any] {
+        [
+            {% for parameter in event.internal.parameters %}
+            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% if parameter.type.oneOf %}.rawValue{% endif %}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+}

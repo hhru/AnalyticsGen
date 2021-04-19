@@ -1,0 +1,15 @@
+---
+name: Отписка от автопоиска
+description: Пользователь отключил уведомления подписки
+category: Автопоиск
+application: applicant
+
+external:
+  category: applicant
+  action: autosearch-unsubscribe
+  label:
+    oneOf:
+      - name: autosearch
+        description: Пользователь отключил уведомления подписки с автопоиска
+      - name: autosearch-list
+        description: Пользователь отключил уведомления подписки со списка автопоисков

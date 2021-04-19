@@ -4,6 +4,7 @@ struct RenderParameters {
 
     // MARK: - Instance Properties
 
-    let template: RenderTemplate
+    let internalTemplate: RenderTemplate
+    let externalTemplate: RenderTemplate
     let destination: RenderDestination
 }

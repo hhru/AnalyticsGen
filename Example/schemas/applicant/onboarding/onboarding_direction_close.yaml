@@ -1,0 +1,16 @@
+---
+name: Закрытие экрана "Развилка"
+description: Пользователь кликнул на крестик
+category: Онбоардинг
+application: applicant
+
+external:
+  category: anonymous
+  action: onboarding-direction-show
+  label:
+    oneOf:
+      - name: success
+        description: --
+
+internal:
+  event: onboardingClose

@@ -4,7 +4,8 @@ protocol GenerationParametersResolving {
 
     // MARK: - Instance Properties
 
-    var defaultTemplateType: RenderTemplateType { get }
+    var defaultInternalTemplateType: RenderTemplateType { get }
+    var defaultExternalTemplateType: RenderTemplateType { get }
     var defaultDestination: RenderDestination { get }
 
     // MARK: - Instance Methods
@@ -18,11 +19,19 @@ extension GenerationParametersResolving {
 
     // MARK: - Instance Methods
 
-    private func resolveTemplateType(configuration: Configuration) -> RenderTemplateType {
-        if let templatePath = configuration.template {
-            return .custom(path: templatePath)
+    private func resolveInternalTemplateType(configuration: Configuration) -> RenderTemplateType {
+        if let templatesPath = configuration.template?.internal?.path {
+            return .custom(path: templatesPath)
         } else {
-            return defaultTemplateType
+            return defaultInternalTemplateType
+        }
+    }
+
+    private func resolveExternalTemplateType(configuration: Configuration) -> RenderTemplateType {
+        if let templatesPath = configuration.template?.external?.path {
+            return .custom(path: templatesPath)
+        } else {
+            return defaultExternalTemplateType
         }
     }
 
@@ -37,17 +46,34 @@ extension GenerationParametersResolving {
     // MARK: -
 
     func resolveGenerationParameters(from configuration: Configuration) throws -> GenerationParameters {
-        let templateType = resolveTemplateType(configuration: configuration)
-        let destination = resolveDestination(configuration: configuration)
+        let internalTemplateType = resolveInternalTemplateType(configuration: configuration)
+        let externalTemplateType = resolveExternalTemplateType(configuration: configuration)
 
-        let template = RenderTemplate(
-            type: templateType,
+        let internalTemplate = RenderTemplate(
+            type: internalTemplateType,
             options: configuration
-                .templateOptions?
+                .template?
+                .internal?
+                .options?
                 .mapValues { $0.value } ?? [:]
         )
 
-        let render = RenderParameters(template: template, destination: destination)
+        let externalTemplate = RenderTemplate(
+            type: externalTemplateType,
+            options: configuration
+            .template?
+            .external?
+            .options?
+            .mapValues { $0.value } ?? [:]
+        )
+
+        let destination = resolveDestination(configuration: configuration)
+
+        let render = RenderParameters(
+            internalTemplate: internalTemplate,
+            externalTemplate: externalTemplate,
+            destination: destination
+        )
 
         return GenerationParameters(render: render)
     }

@@ -11,7 +11,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     let configurationProvider: ConfigurationProvider
     let specificationProvider: SpecificationProvider
-    let schemaProvider: SchemaProvider
+    let eventProvider: EventProvider
     let templateRenderer: TemplateRenderer
     let dictionaryDecoder: DictionaryDecoder
 
@@ -20,13 +20,13 @@ final class DefaultEventGenerator: EventGenerator {
     init(
         configurationProvider: ConfigurationProvider,
         specificationProvider: SpecificationProvider,
-        schemaProvider: SchemaProvider,
+        eventProvider: EventProvider,
         templateRenderer: TemplateRenderer,
         dictionaryDecoder: DictionaryDecoder
     ) {
         self.configurationProvider = configurationProvider
         self.specificationProvider = specificationProvider
-        self.schemaProvider = schemaProvider
+        self.eventProvider = eventProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
     }
@@ -35,11 +35,21 @@ final class DefaultEventGenerator: EventGenerator {
         let filename = schemaURL.deletingPathExtension().lastPathComponent.camelized.appending(String.filenameSuffix)
         let context = EventContext(event: event, filename: filename)
 
-        try templateRenderer.renderTemplate(
-            parameters.render.template,
-            to: parameters.render.destination.appending(path: "\(filename).swift"),
-            context: context
-        )
+        if event.internal != nil, event.external == nil {
+            try templateRenderer.renderTemplate(
+                parameters.render.internalTemplate,
+                to: parameters.render.destination.appending(path: "\(filename).swift"),
+                context: context
+            )
+        } else if event.external != nil, event.internal == nil {
+            try templateRenderer.renderTemplate(
+                parameters.render.externalTemplate,
+                to: parameters.render.destination.appending(path: "\(filename).swift"),
+                context: context
+            )
+        } else {
+            // Render external with internal
+        }
     }
 
     private func generate(configuration: Configuration, specification: Specification) throws {
@@ -56,21 +66,8 @@ final class DefaultEventGenerator: EventGenerator {
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
 
-        for case let schemaURL as URL in enumerator where schemaURL.pathExtension == "yaml" {
-            let path = schemaURL.path
-            let schema = try schemaProvider.fetchSchema(from: path)
-
-            Log.info("Validating file \(path)")
-
-            // Возможно, валидация схемы не нужна, так как ниже декодим по модели Event,
-            // которая описывает спецификацию
-            if let errors = JSONSchema.validate(schema, schema: specification).errors {
-                throw MessageError(errors.joined(separator: "\n"))
-            }
-
-            let event = try dictionaryDecoder.decode(Event.self, from: schema)
-
-            Log.success("File \(path) is valid. Start generating...")
+        for case let schemaURL as URL in enumerator where schemaURL.pathExtension == .yamlExtension {
+            let event = try eventProvider.fetchEvent(from: schemaURL)
 
             try generate(parameters: generarionParameters, event: event, schemaURL: schemaURL)
         }
@@ -97,8 +94,12 @@ extension DefaultEventGenerator: GenerationParametersResolving {
 
     // MARK: - Instance Properties
 
-    var defaultTemplateType: RenderTemplateType {
-        .native(name: "Event")
+    var defaultInternalTemplateType: RenderTemplateType {
+        .native(name: "InternalEvent")
+    }
+
+    var defaultExternalTemplateType: RenderTemplateType {
+        .native(name: "ExternalEvent")
     }
 
     var defaultDestination: RenderDestination {
@@ -130,4 +131,5 @@ private extension String {
     // MARK: - Type Properties
 
     static let filenameSuffix = "Event"
+    static let yamlExtension = "yaml"
 }
