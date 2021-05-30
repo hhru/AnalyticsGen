@@ -48,7 +48,11 @@ final class DefaultEventGenerator: EventGenerator {
                 context: context
             )
         } else {
-            // Render external with internal
+            try templateRenderer.renderTemplate(
+                parameters.render.externalInternalTemplate,
+                to: parameters.render.destination.appending(path: "\(filename).swift"),
+                context: context
+            )
         }
     }
 
@@ -100,6 +104,10 @@ extension DefaultEventGenerator: GenerationParametersResolving {
 
     var defaultExternalTemplateType: RenderTemplateType {
         .native(name: "ExternalEvent")
+    }
+
+    var defaultExternalInternalTemplateType: RenderTemplateType {
+        .native(name: "ExternalInternalEvent")
     }
 
     var defaultDestination: RenderDestination {

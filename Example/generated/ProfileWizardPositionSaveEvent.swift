@@ -30,9 +30,9 @@ struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, Slash
     let buttonName = "profile_wizard_position_save"
 
     /// Тип экрана выбора должности
-    let type: Type
+    let type: `Type`
 
-    var parameters: [ParameterKeys: Any] {
+    var parameters: [ParameterKeys: Any?] {
         [
             .buttonName: buttonName,
             .type: type.rawValue

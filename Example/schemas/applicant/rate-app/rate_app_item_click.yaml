@@ -1,0 +1,26 @@
+---
+name: Клик на вариант ответа в боттомшите оценки приложения
+description: Пользователь кликнул на вариант ответа в боттомшите оценки приложения
+category: Оценка приложения
+application: applicant
+
+experiment:
+  url: https://jira.hh.ru/browse/PORTFOLIO-12642
+  name: PORTFOLIO-12642
+  description: Запрос оценки или отзыва в приложении после позитивного опыта взаимодействия
+
+internal:
+  event: button_click
+  buttonName:
+    description: Кнопки вариантов ответов
+    oneOf:
+      - name: like
+        description: Вариант ответа "Нравится"
+      - name: dislike
+        description: Вариант ответа "Не очень"
+      - name: not_now
+        description: Вариант ответа "Спасибо, не сейчас"
+  hhtmSource:
+    const: app_rating_quiz
+    description: Боттомшит оценки приложения
+

@@ -21,7 +21,7 @@ struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnalyticsEv
     /// Баннер "Подтвердить номер телефона"
     let buttonName = "phone_verification_banner"
 
-    var parameters: [ParameterKeys: Any] {
+    var parameters: [ParameterKeys: Any?] {
         [
             .hhtmSource: hhtmSource,
             .buttonName: buttonName

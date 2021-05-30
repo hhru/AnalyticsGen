@@ -17,4 +17,5 @@ struct TemplateConfiguration: Decodable {
 
     let `internal`: Template?
     let external: Template?
+    let externalInternal: Template?
 }

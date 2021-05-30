@@ -25,7 +25,7 @@ struct ProfileWizardPositionShownEvent: ParametrizedInternalAnalyticsEvent, Slas
     /// Общее количество шагов в визарде
     let totalStepsCount: Int
 
-    var parameters: [ParameterKeys: Any] {
+    var parameters: [ParameterKeys: Any?] {
         [
             .screenName: screenName,
             .currentStepNumber: currentStepNumber,

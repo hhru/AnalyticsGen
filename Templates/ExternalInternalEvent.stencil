@@ -7,7 +7,7 @@ import Analytics
 /// **Название**: {{ event.name }}
 /// **Описание**: {{ event.description }}
 /// **Категория**: {{ event.category }}
-struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
 
     enum ParameterKeys: String {
         {% for parameter in event.internal.parameters %}
@@ -25,9 +25,22 @@ struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
         {% endif %}
         {% endfor %}
     }
-
     {% endfor %}
+
+    {% if event.external.label %}
+    enum Label: String {
+        {% for oneOf in event.external.label.oneOf %}
+        /// {{ oneOf.description }}
+        case {% call propertyName oneOf.name %}
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+
     let eventName = "{{ event.internal.event }}"
+    let action = "{{ event.external.action }}"
 
     {% for parameter in event.internal.parameters where parameter.type.const %}
     /// {{ parameter.description }}
@@ -42,8 +55,18 @@ struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
     {% for parameter in event.internal.parameters where parameter.type.oneOf %}
     /// {{ parameter.description }}
     let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
-
     {% endfor %}
+
+    {% if event.external.label %}
+        {% if event.external.label.oneOf.count == 1 %}
+    let label: Label = .{% call propertyName event.external.label.oneOf.0.name %}
+        {% else %}
+    let label: Label
+        {% endif %}
+    {% endif %}
+    
+    let isLoggedIn: Bool
+
     var parameters: [ParameterKeys: Any?] {
         [
             {% for parameter in event.internal.parameters %}

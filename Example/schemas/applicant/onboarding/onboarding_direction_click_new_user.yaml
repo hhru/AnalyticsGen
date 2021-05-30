@@ -1,0 +1,16 @@
+---
+name: Новый пользователь на экране "Развилка"
+description: Пользователь кликнул на "Я новый"
+category: Онбоардинг
+application: applicant
+
+external:
+  category: anonymous
+  action: onboarding-direction-click-new-user
+  label:
+    oneOf:
+      - name: success
+        description: --
+
+internal:
+  event: onboardingNewUserClick

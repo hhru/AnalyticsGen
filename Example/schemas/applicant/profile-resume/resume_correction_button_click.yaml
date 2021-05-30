@@ -1,0 +1,17 @@
+---
+name: Клик на кнопку
+description: Клик на кнопку "Исправить резюме", ведущую на веб
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: button_click
+  platform: Android/iOS
+
+  buttonName:
+    const: resume_correction
+    description: Кнопка "Исправить резюме"
+
+  hhtmSource:
+    const: resume
+    description: Профиль-резюме
