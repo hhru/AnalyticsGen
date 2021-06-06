@@ -1,0 +1,33 @@
+{% include "FileHeader.stencil" %}
+{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
+
+import Foundation
+
+/// **Название**: {{ event.name }}
+/// **Описание**: {{ event.description }}
+/// **Категория**: {{ event.category }}
+struct {{ filename }}: UserCategoryEvent {
+    {% if event.external.label %}
+
+    enum Label: String {
+        {% for oneOf in event.external.label.oneOf %}
+        /// {{ oneOf.description }}
+        case {% call propertyName oneOf.name %}
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+
+    let action = "{{ event.external.action }}"
+
+    {% if event.external.label %}
+        {% if event.external.label.oneOf.count == 1 %}
+    let label: Label = .{% call propertyName event.external.label.oneOf.1.name %}
+        {% else %}
+    let label: Label
+        {% endif %}
+    {% endif %}
+    let isLoggedIn: Bool
+}

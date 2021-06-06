@@ -1,0 +1,13 @@
+---
+name: Нажатие на кнопку "Подтвердить номер" (баннер на профиле)
+description: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме. 
+category: Профиль-резюме
+application: applicant
+
+experiment:
+  url: https://jira.hh.ru/browse/PORTFOLIO-12870
+  name: PORTFOLIO-12870
+  description: Отклик одним резюме
+
+internal:
+  event: button_click

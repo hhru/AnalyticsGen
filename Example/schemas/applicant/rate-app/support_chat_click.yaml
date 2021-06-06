@@ -1,0 +1,32 @@
+---
+name: Клик на кнопку написать в поддержку
+description: Пользователь кликнул на какую-либо кнопку написания в поддержку
+category: Поддержка
+application: applicant
+
+experiment:
+  url: https://jira.hh.ru/browse/PORTFOLIO-12642
+  name: PORTFOLIO-12642
+  description: Запрос оценки или отзыва в приложении после позитивного опыта взаимодействия
+
+internal:
+  event: button_click
+  buttonName:
+    const: open_support_chat
+    description: Какая-либо кнопка написания в поддержку
+  hhtmSource:
+    description: Где находится кнопка
+    oneOf:
+      - name: app_rating_support
+        description: В боттомшите/диалоге оценки приложения
+      - name: help
+        description: На экране "Помощь"
+  hhtmFrom:
+    description: После открытия какого экрана была нажата кнопка
+    oneOf:
+      - name: app_rating_quiz
+        description: Боттомшита оценки приложения
+      - name: app_rating_stars
+        description: Диалога оценки приложения
+      - name: help
+        description: Экрана "Помощь"

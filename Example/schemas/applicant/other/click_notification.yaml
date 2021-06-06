@@ -1,0 +1,15 @@
+---
+name: Открытие уведомления
+description: Пользователь кликнул на уведомление на экране "Уведомления"
+category: Разное
+application: applicant
+
+external:
+  category: anonymous/applicant
+  action: click-notification
+  label:
+    oneOf:
+      - name: notifications
+        description: Пользователь нажал «Оценить приложение» во всплывающем уведомлении
+      - name: else-page
+        description: Пользователь нажал «Оценить приложение» на экране «Еще»

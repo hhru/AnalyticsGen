@@ -1,5 +1,6 @@
 import Foundation
 import AnalyticsGenTools
+import DictionaryCoder
 
 enum Dependencies {
 
@@ -7,11 +8,24 @@ enum Dependencies {
 
     static let configurationProvider: ConfigurationProvider = DefaultConfigurationProvider()
     static let specificationProvider: SpecificationProvider = DefaultSpecificationProvider()
-    static let schemaProvider: SchemaProvider = DefaultSchemaProvider()
+    static let eventProvider: EventProvider = DefaultEventProvider()
+
+    static let templateContextCoder: TemplateContextCoder = DefaultTemplateContextCoder()
+
+    static let stencilExtensions: [StencilExtension] = [
+        StencilStringWordModificator()
+    ]
+
+    static let templateRenderer: TemplateRenderer = DefaultTemplateRenderer(
+        contextCoder: templateContextCoder,
+        stencilExtensions: stencilExtensions
+    )
 
     static let eventGenerator: EventGenerator = DefaultEventGenerator(
         configurationProvider: configurationProvider,
         specificationProvider: specificationProvider,
-        schemaProvider: schemaProvider
+        eventProvider: eventProvider,
+        templateRenderer: templateRenderer,
+        dictionaryDecoder: DictionaryDecoder()
     )
 }
