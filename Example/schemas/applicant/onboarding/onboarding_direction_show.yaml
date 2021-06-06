@@ -1,9 +1,0 @@
----
-name: Показ экрана "Развилка"
-description: Показан экран-развилка
-category: Онбоардинг
-application: applicant
-
-external:
-  category: anonymous
-  action: onboarding-direction-show
