@@ -6,9 +6,3 @@ application: applicant
 
 internal:
   event: button_click
-  hhtmSource:
-    const: resume
-    description: Экран Профиль-резюме
-  buttonName:
-    const: phone_verification_banner
-    description: Баннер "Подтвердить номер телефона"

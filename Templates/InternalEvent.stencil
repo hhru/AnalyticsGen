@@ -1,19 +1,23 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
 {% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
+{% set hasParameters %}{% if event.internal.parameters.count > 0 %}true{% else %}{% endif %}{% endset %}
+{% set internalAnalyticsEventType %}{% if hasParameters %}ParametrizedInternalAnalyticsEvent{% else %}InternalAnalyticsEvent{% endif %}{% endset %}
 
 import Analytics
 
 /// **Название**: {{ event.name }}
 /// **Описание**: {{ event.description }}
 /// **Категория**: {{ event.category }}
-struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent {
 
+    {% if hasParameters %}
     enum ParameterKeys: String {
         {% for parameter in event.internal.parameters %}
         case {% call propertyName parameter.name %}
         {% endfor %}
     }
+    {% endif %}
 
     {% for parameter in event.internal.parameters where parameter.type.oneOf %}
     enum {% call enumName parameter.name %}: String {
@@ -44,6 +48,7 @@ struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
     let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
 
     {% endfor %}
+    {% if hasParameters %}
     var parameters: [ParameterKeys: Any?] {
         [
             {% for parameter in event.internal.parameters %}
@@ -51,4 +56,5 @@ struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
             {% endfor %}
         ]
     }
+    {% endif %}
 }

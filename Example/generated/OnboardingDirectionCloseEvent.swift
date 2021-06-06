@@ -6,10 +6,8 @@ import Analytics
 /// **Название**: Закрытие экрана "Развилка"
 /// **Описание**: Пользователь кликнул на крестик
 /// **Категория**: Онбоардинг
-struct OnboardingDirectionCloseEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
+struct OnboardingDirectionCloseEvent: InternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
 
-    enum ParameterKeys: String {
-    }
 
 
     enum Label: String {
@@ -24,8 +22,4 @@ struct OnboardingDirectionCloseEvent: ParametrizedInternalAnalyticsEvent, SlashA
     let label: Label = .success
     let isLoggedIn: Bool
 
-    var parameters: [ParameterKeys: Any?] {
-        [
-        ]
-    }
 }

@@ -6,10 +6,8 @@ import Analytics
 /// **Название**: Новый пользователь на экране "Развилка"
 /// **Описание**: Пользователь кликнул на "Я новый"
 /// **Категория**: Онбоардинг
-struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
+struct OnboardingDirectionClickNewUserEvent: InternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
 
-    enum ParameterKeys: String {
-    }
 
 
     enum Label: String {
@@ -24,8 +22,4 @@ struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent,
     let label: Label = .success
     let isLoggedIn: Bool
 
-    var parameters: [ParameterKeys: Any?] {
-        [
-        ]
-    }
 }
