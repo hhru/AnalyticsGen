@@ -19,7 +19,7 @@ struct {{ filename }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
     enum {% call enumName parameter.name %}: String {
         {% for oneOf in parameter.type.oneOf %}
         /// {{ oneOf.description }}
-        case {% call propertyName oneOf.name %}
+        case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
 
         {% endif %}

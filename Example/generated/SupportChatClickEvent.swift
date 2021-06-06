@@ -16,21 +16,21 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
 
     enum HHTMSource: String {
         /// В боттомшите/диалоге оценки приложения
-        case appRatingSupport
+        case appRatingSupport = "app_rating_support"
 
         /// На экране "Помощь"
-        case help
+        case help = "help"
     }
 
     enum HHTMFrom: String {
         /// Боттомшита оценки приложения
-        case appRatingQuiz
+        case appRatingQuiz = "app_rating_quiz"
 
         /// Диалога оценки приложения
-        case appRatingStars
+        case appRatingStars = "app_rating_stars"
 
         /// Экрана "Помощь"
-        case help
+        case help = "help"
     }
 
     let eventName = "button_click"

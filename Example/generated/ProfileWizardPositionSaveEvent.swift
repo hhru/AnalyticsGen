@@ -15,13 +15,13 @@ struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, Slash
 
     enum `Type`: String {
         /// экран накликивания
-        case tag
+        case tag = "tag"
 
         /// экран подсказки + выбрали подсказку (не ручной ввод)
-        case suggest
+        case suggest = "suggest"
 
         /// кран подсказки ручной ввод
-        case manual
+        case manual = "manual"
     }
 
     let eventName = "button_click"

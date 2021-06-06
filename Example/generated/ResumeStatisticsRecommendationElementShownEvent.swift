@@ -17,10 +17,10 @@ struct ResumeStatisticsRecommendationElementShownEvent: ParametrizedInternalAnal
 
     enum HHTMSource: String {
         /// Экран список резюме со статистикой
-        case resumeList
+        case resumeList = "resume_list"
 
         /// Экран резюме-профиля
-        case resume
+        case resume = "resume"
     }
 
     let eventName = "element_shown"

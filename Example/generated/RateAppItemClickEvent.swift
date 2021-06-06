@@ -15,13 +15,13 @@ struct RateAppItemClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
 
     enum ButtonName: String {
         /// Вариант ответа "Нравится"
-        case like
+        case like = "like"
 
         /// Вариант ответа "Не очень"
-        case dislike
+        case dislike = "dislike"
 
         /// Вариант ответа "Спасибо, не сейчас"
-        case notNow
+        case notNow = "not_now"
     }
 
     let eventName = "button_click"
