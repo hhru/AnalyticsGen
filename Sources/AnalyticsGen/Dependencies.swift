@@ -11,7 +11,10 @@ enum Dependencies {
     static let eventProvider: EventProvider = DefaultEventProvider()
 
     static let templateContextCoder: TemplateContextCoder = DefaultTemplateContextCoder()
-    static let stencilExtensions: [StencilExtension] = []
+
+    static let stencilExtensions: [StencilExtension] = [
+        StencilStringWordModificator()
+    ]
 
     static let templateRenderer: TemplateRenderer = DefaultTemplateRenderer(
         contextCoder: templateContextCoder,

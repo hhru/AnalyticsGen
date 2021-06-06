@@ -1,6 +1,6 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
-{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|capitalize|escapeReservedKeywords }}{% endmacro %}
+{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
 
 import Analytics
 

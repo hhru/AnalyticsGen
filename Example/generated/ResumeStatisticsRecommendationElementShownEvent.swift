@@ -15,7 +15,7 @@ struct ResumeStatisticsRecommendationElementShownEvent: ParametrizedInternalAnal
         case resumeHash
     }
 
-    enum Hhtmsource: String {
+    enum HHTMSource: String {
         /// Экран список резюме со статистикой
         case resumeList
 
@@ -35,7 +35,7 @@ struct ResumeStatisticsRecommendationElementShownEvent: ParametrizedInternalAnal
     let resumeHash: String
 
     /// Экран, на котором была показана рекомендация
-    let hhtmSource: Hhtmsource
+    let hhtmSource: HHTMSource
 
     var parameters: [ParameterKeys: Any?] {
         [

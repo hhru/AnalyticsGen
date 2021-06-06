@@ -14,7 +14,7 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
         case hhtmFrom
     }
 
-    enum Hhtmsource: String {
+    enum HHTMSource: String {
         /// В боттомшите/диалоге оценки приложения
         case appRatingSupport
 
@@ -22,7 +22,7 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
         case help
     }
 
-    enum Hhtmfrom: String {
+    enum HHTMFrom: String {
         /// Боттомшита оценки приложения
         case appRatingQuiz
 
@@ -39,10 +39,10 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
     let buttonName = "open_support_chat"
 
     /// Где находится кнопка
-    let hhtmSource: Hhtmsource
+    let hhtmSource: HHTMSource
 
     /// После открытия какого экрана была нажата кнопка
-    let hhtmFrom: Hhtmfrom
+    let hhtmFrom: HHTMFrom
 
     var parameters: [ParameterKeys: Any?] {
         [

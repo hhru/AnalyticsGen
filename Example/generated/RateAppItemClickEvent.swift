@@ -13,7 +13,7 @@ struct RateAppItemClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
         case hhtmSource
     }
 
-    enum Buttonname: String {
+    enum ButtonName: String {
         /// Вариант ответа "Нравится"
         case like
 
@@ -30,7 +30,7 @@ struct RateAppItemClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
     let hhtmSource = "app_rating_quiz"
 
     /// Кнопки вариантов ответов
-    let buttonName: Buttonname
+    let buttonName: ButtonName
 
     var parameters: [ParameterKeys: Any?] {
         [
