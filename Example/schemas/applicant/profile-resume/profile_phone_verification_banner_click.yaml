@@ -4,5 +4,10 @@ description: Нажатие на кнопку "Подтвердить номер
 category: Профиль-резюме
 application: applicant
 
+experiment:
+  url: https://some.jira.link.ru/browse/PORTFOLIO-12870
+  name: PORTFOLIO-12870
+  description: Отклик одним резюме
+
 internal:
   event: button_click

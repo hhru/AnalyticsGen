@@ -9,6 +9,10 @@ import Analytics
 /// **Название**: {{ event.name }}
 /// **Описание**: {{ event.description }}
 /// **Категория**: {{ event.category }}
+{% if event.experiment %}
+/// **Эксперимент**:
+/// {{ event.experiment.url }} ({{ event.experiment.description }})
+{% endif %}
 struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent {
 
     {% if hasParameters %}

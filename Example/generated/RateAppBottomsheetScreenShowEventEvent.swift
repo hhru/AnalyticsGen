@@ -6,6 +6,8 @@ import Analytics
 /// **Название**: Открыт боттомшит оценки приложения
 /// **Описание**: Пользователь открыл боттомшит оценки приложения
 /// **Категория**: Оценка приложения
+/// **Эксперимент**:
+/// https://jira.hh.ru/browse/PORTFOLIO-12642 (Запрос оценки или отзыва в приложении после позитивного опыта взаимодействия)
 struct RateAppBottomsheetScreenShowEventEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {

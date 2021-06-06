@@ -6,6 +6,8 @@ import Analytics
 /// **Название**: Клик на кнопку написать в поддержку
 /// **Описание**: Пользователь кликнул на какую-либо кнопку написания в поддержку
 /// **Категория**: Поддержка
+/// **Эксперимент**:
+/// https://jira.hh.ru/browse/PORTFOLIO-12642 (Запрос оценки или отзыва в приложении после позитивного опыта взаимодействия)
 struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {

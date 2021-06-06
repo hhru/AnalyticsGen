@@ -6,6 +6,8 @@ import Analytics
 /// **Название**: Клик на вариант ответа в боттомшите оценки приложения
 /// **Описание**: Пользователь кликнул на вариант ответа в боттомшите оценки приложения
 /// **Категория**: Оценка приложения
+/// **Эксперимент**:
+/// https://jira.hh.ru/browse/PORTFOLIO-12642 (Запрос оценки или отзыва в приложении после позитивного опыта взаимодействия)
 struct RateAppItemClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {
