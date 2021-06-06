@@ -10,7 +10,6 @@ import Analytics
 /// https://jira.hh.ru/browse/PORTFOLIO-12870 (Отклик одним резюме)
 struct ProfilePhoneVerificationBannerClickEvent: InternalAnalyticsEvent, SlashAnalyticsEvent {
 
-
     let eventName = "button_click"
 
 }

@@ -8,8 +8,6 @@ import Analytics
 /// **Категория**: Онбоардинг
 struct OnboardingDirectionClickNewUserEvent: InternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
 
-
-
     enum Label: String {
         /// --
         case success
@@ -17,7 +15,6 @@ struct OnboardingDirectionClickNewUserEvent: InternalAnalyticsEvent, SlashAnalyt
 
     let eventName = "onboardingNewUserClick"
     let action = "onboarding-direction-click-new-user"
-
 
     let label: Label = .success
     let isLoggedIn: Bool
