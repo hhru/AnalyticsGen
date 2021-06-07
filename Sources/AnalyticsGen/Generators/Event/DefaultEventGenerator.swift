@@ -10,7 +10,6 @@ final class DefaultEventGenerator: EventGenerator {
     // MARK: - Instance Properties
 
     let configurationProvider: ConfigurationProvider
-    let specificationProvider: SpecificationProvider
     let eventProvider: EventProvider
     let templateRenderer: TemplateRenderer
     let dictionaryDecoder: DictionaryDecoder
@@ -19,16 +18,22 @@ final class DefaultEventGenerator: EventGenerator {
 
     init(
         configurationProvider: ConfigurationProvider,
-        specificationProvider: SpecificationProvider,
         eventProvider: EventProvider,
         templateRenderer: TemplateRenderer,
         dictionaryDecoder: DictionaryDecoder
     ) {
         self.configurationProvider = configurationProvider
-        self.specificationProvider = specificationProvider
         self.eventProvider = eventProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
+    }
+
+    private func resolveSchemasPath(configuration: Configuration) -> Promise<URL> {
+        if let localPath = configuration.source?.local {
+            return .value(URL(fileURLWithPath: localPath))
+        } else if let remoteSource = configuration.source?.gitHub {
+            
+        }
     }
 
     private func generate(parameters: GenerationParameters, event: Event, schemaURL: URL) throws {
@@ -56,7 +61,7 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: Configuration, specification: Specification) throws {
+    private func generate(configuration: Configuration) throws {
         guard let schemasPath = configuration.source?.local else {
             return
         }
@@ -82,12 +87,8 @@ final class DefaultEventGenerator: EventGenerator {
     func generate(configurationPath: String) -> Promise<Void> {
         firstly {
             configurationProvider.fetchConfiguration(from: configurationPath)
-        }.then { configuration in
-            self.specificationProvider
-                .fetchSpecification(from: configuration.specification)
-                .map { (configuration, $0) }
-        }.done { configuration, specification in
-            try self.generate(configuration: configuration, specification: specification)
+        }.done { configuration in
+            try self.generate(configuration: configuration)
         }
     }
 }

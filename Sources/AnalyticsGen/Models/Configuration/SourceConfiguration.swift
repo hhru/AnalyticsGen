@@ -5,5 +5,5 @@ struct SourceConfiguration: Decodable {
     // MARK: - Instance Properties
 
     let local: String?
-    let gitHub: URL?
+    let gitHub: GitHubSourceConfiguration?
 }
