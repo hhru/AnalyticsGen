@@ -156,7 +156,7 @@ struct Event: Codable {
         // MARK: - Instance Properties
 
         let name: String
-        let description: String
+        let description: String?
         let type: InternalParameterType
 
         // MARK: - Initializers
@@ -174,7 +174,7 @@ struct Event: Codable {
             }
 
             self.name = name
-            self.description = try container.decode(forKey: .description)
+            self.description = try container.decodeIfPresent(forKey: .description)
             self.type = try InternalParameterType(from: decoder)
         }
     }

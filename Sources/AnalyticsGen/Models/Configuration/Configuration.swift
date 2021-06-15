@@ -6,7 +6,7 @@ struct Configuration: Decodable {
     // MARK: - Instance Properties
 
     let specification: String
-    let source: SourceConfiguration?
+    let source: SourceConfiguration
     let destination: String?
     let template: TemplateConfiguration?
 }

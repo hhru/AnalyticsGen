@@ -4,7 +4,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public final class HTTPServiceTask<SessionTask: URLSessionTask> {
+public final class HTTPServiceTask<SessionTask: URLSessionTask>: HTTPTask {
 
     // MARK: - Instance Properties
 
@@ -205,7 +205,7 @@ public final class HTTPServiceTask<SessionTask: URLSessionTask> {
     }
 }
 
-extension HTTPServiceTask: HTTPTask where SessionTask == URLSessionDataTask {
+extension HTTPServiceTask where SessionTask == URLSessionDataTask {
 
     // MARK: - Instance Methods
 
@@ -214,6 +214,30 @@ extension HTTPServiceTask: HTTPTask where SessionTask == URLSessionDataTask {
         do {
             sessionTask = session.dataTask(with: try route.asRequest()) { data, response, error in
                 self.handleResponse(response, data: data, error: error)
+            }
+
+            sessionTask?.resume()
+        } catch {
+            handleResponse(HTTPResponse(.failure(HTTPError(code: .badRequest, reason: error))))
+        }
+
+        return self
+    }
+}
+
+extension HTTPServiceTask where SessionTask == URLSessionDownloadTask {
+
+    // MARK: - Instance Methods
+
+    @discardableResult
+    internal func launch() -> Self {
+        do {
+            sessionTask = session.downloadTask(with: try route.asRequest()) { url, response, error in
+                self.handleResponse(
+                    response,
+                    data: url.flatMap { try? Data(contentsOf: $0) },
+                    error: error
+                )
             }
 
             sessionTask?.resume()

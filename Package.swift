@@ -17,7 +17,8 @@ let package = Package(
         .package(url: "https://github.com/SwiftGen/StencilSwiftKit.git", from: "2.7.2"),
         .package(url: "https://github.com/almazrafi/DictionaryCoder.git", from: "1.0.4"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.4"),
-        .package(url: "https://github.com/kylef/JSONSchema.swift.git", from: "0.5.0")
+        .package(url: "https://github.com/kylef/JSONSchema.swift.git", from: "0.5.0"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", .upToNextMajor(from: "0.9.0"))
     ],
     targets: [
         .target(
@@ -32,7 +33,8 @@ let package = Package(
                 "StencilSwiftKit",
                 "DictionaryCoder",
                 "Yams",
-                "JSONSchema"
+                "JSONSchema",
+                "ZIPFoundation"
             ]
         ),
         .target(

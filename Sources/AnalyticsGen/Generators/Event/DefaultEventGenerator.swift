@@ -11,6 +11,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     let configurationProvider: ConfigurationProvider
     let eventProvider: EventProvider
+    let remoteRepoProvider: RemoteRepoProvider
     let templateRenderer: TemplateRenderer
     let dictionaryDecoder: DictionaryDecoder
 
@@ -19,20 +20,34 @@ final class DefaultEventGenerator: EventGenerator {
     init(
         configurationProvider: ConfigurationProvider,
         eventProvider: EventProvider,
+        remoteRepoProvider: RemoteRepoProvider,
         templateRenderer: TemplateRenderer,
         dictionaryDecoder: DictionaryDecoder
     ) {
         self.configurationProvider = configurationProvider
         self.eventProvider = eventProvider
+        self.remoteRepoProvider = remoteRepoProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
     }
 
-    private func resolveSchemasPath(configuration: Configuration) -> Promise<URL> {
-        if let localPath = configuration.source?.local {
-            return .value(URL(fileURLWithPath: localPath))
-        } else if let remoteSource = configuration.source?.gitHub {
-            
+    private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
+        switch configuration.source {
+        case .local(let path):
+            return .value(URL(fileURLWithPath: path))
+
+        case .gitHub(let gitHubConfiguration):
+            return remoteRepoProvider
+                .fetchRepo(
+                    owner: gitHubConfiguration.owner,
+                    repo: gitHubConfiguration.repo,
+                    branch: gitHubConfiguration.branch,
+                    username: gitHubConfiguration.username,
+                    token: try gitHubConfiguration.accessToken.resolveToken()
+                )
+                .map { path in
+                    gitHubConfiguration.path.map { path.appendingPathComponent($0) } ?? path
+                }
         }
     }
 
@@ -61,16 +76,9 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: Configuration) throws {
-        guard let schemasPath = configuration.source?.local else {
-            return
-        }
-
-        guard let enumerator = FileManager.default.enumerator(
-                at: URL(fileURLWithPath: schemasPath),
-                includingPropertiesForKeys: nil
-        ) else {
-            return
+    private func generate(configuration: Configuration, schemasPath: URL) throws {
+        guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
+            throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
@@ -87,8 +95,10 @@ final class DefaultEventGenerator: EventGenerator {
     func generate(configurationPath: String) -> Promise<Void> {
         firstly {
             configurationProvider.fetchConfiguration(from: configurationPath)
-        }.done { configuration in
-            try self.generate(configuration: configuration)
+        }.then { configuration in
+            try self.resolveSchemasPath(configuration: configuration).map { (configuration, $0) }
+        }.done { configuration, schemasPath in
+            try self.generate(configuration: configuration, schemasPath: schemasPath)
         }
     }
 }
@@ -141,4 +151,25 @@ private extension String {
 
     static let filenameSuffix = "Event"
     static let yamlExtension = "yaml"
+}
+
+// MARK: -
+
+private extension AccessTokenConfiguration {
+
+    // MARK: - Instance Methods
+
+    func resolveToken() throws -> String {
+        switch self {
+        case .value(let token):
+            return token
+
+        case .environmentVariable(let environmentVariable):
+            guard let token = ProcessInfo.processInfo.environment[environmentVariable] else {
+                throw MessageError("Environment variable '\(environmentVariable)' not found.")
+            }
+
+            return token
+        }
+    }
 }
