@@ -43,6 +43,20 @@ public final class HTTPService {
                 }
             }
     }
+
+    public func downloadRequest(route: HTTPRoute) -> HTTPTask {
+        DispatchQueue.main.async {
+            self.activityIndicator?.incrementActivityCount()
+        }
+
+        return HTTPServiceTask<URLSessionDownloadTask>(session: session, route: route)
+            .launch()
+            .response { _ in
+                DispatchQueue.main.async {
+                    self.activityIndicator?.decrementActivityCount()
+                }
+            }
+    }
 }
 
 extension URLSessionConfiguration {

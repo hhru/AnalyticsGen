@@ -1,5 +1,3 @@
 specification: "/Users/t.shafigullin/Desktop/Swift/AnalyticsGen/Example/specification/specification.yaml"
-source:
-  local: "/Users/t.shafigullin/Desktop/Swift/AnalyticsGen/Example/schemas/applicant"
-  gitHub: "https://github.com/hhru/hh-mobile-analytics/tree/master/schemas"
+source: "schemas"
 destination: "generated"

@@ -6,9 +6,11 @@ enum Dependencies {
 
     // MARK: - Type Properties
 
+    static let httpService = HTTPService()
+
     static let configurationProvider: ConfigurationProvider = DefaultConfigurationProvider()
-    static let specificationProvider: SpecificationProvider = DefaultSpecificationProvider()
     static let eventProvider: EventProvider = DefaultEventProvider()
+    static let gitHubRemoteRepoProvider: RemoteRepoProvider = GitHubRemoteRepoProvider(httpService: httpService)
 
     static let templateContextCoder: TemplateContextCoder = DefaultTemplateContextCoder()
 
@@ -23,8 +25,8 @@ enum Dependencies {
 
     static let eventGenerator: EventGenerator = DefaultEventGenerator(
         configurationProvider: configurationProvider,
-        specificationProvider: specificationProvider,
         eventProvider: eventProvider,
+        remoteRepoProvider: gitHubRemoteRepoProvider,
         templateRenderer: templateRenderer,
         dictionaryDecoder: DictionaryDecoder()
     )
