@@ -48,12 +48,17 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent, Us
 
     {% for parameter in event.internal.parameters where parameter.type.const %}
     /// {{ parameter.description }}
+    {% if parameter.type.const.hhtmSource %}
+    let {% call propertyName parameter.name %} = HHTMSource.{{ parameter.type.const.hhtmSource }}
+    {% else %}
     let {% call propertyName parameter.name %} = "{{ parameter.type.const }}"
+    {% endif %}
 
     {% endfor %}
+
     {% for parameter in event.internal.parameters where parameter.type.type %}
     /// {{ parameter.description }}
-    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize }}
+    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize|upperWord:"hhtms" }}
 
     {% endfor %}
     {% for parameter in event.internal.parameters where parameter.type.oneOf %}
@@ -75,7 +80,7 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent, Us
     var parameters: [ParameterKeys: Any?] {
         [
             {% for parameter in event.internal.parameters %}
-            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% if parameter.type.oneOf %}.rawValue{% endif %}{% if not forloop.last %},{% endif %}
+            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% if parameter.type.oneOf %}.rawValue{% elif parameter.type.const.hhtmSource or parameter.type.type == "HHTMSource" %}.value{% endif %}{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     }

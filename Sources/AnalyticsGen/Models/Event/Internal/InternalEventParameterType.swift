@@ -15,7 +15,7 @@ enum InternalEventParameterType: Codable {
 
     // MARK: - Enumeration Cases
 
-    case const(String)
+    case const(InternalEventConstantParameter)
     case oneOf([OneOf])
     case type(String)
 
@@ -24,7 +24,7 @@ enum InternalEventParameterType: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        if let const = try container.decodeIfPresent(String.self, forKey: .const) {
+        if let const = try container.decodeIfPresent(InternalEventConstantParameter.self, forKey: .const) {
             self = .const(const)
         } else if let oneOf: [OneOf] = try container.decodeIfPresent(forKey: .oneOf) {
             self = .oneOf(oneOf)
