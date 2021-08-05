@@ -16,17 +16,8 @@ internal:
     description: Какая-либо кнопка написания в поддержку
   hhtmSource:
     description: Где находится кнопка
-    oneOf:
-      - name: app_rating_support
-        description: В боттомшите/диалоге оценки приложения
-      - name: help
-        description: На экране "Помощь"
+    const:
+      hhtmSource: Applicant.employerScreen
   hhtmFrom:
     description: После открытия какого экрана была нажата кнопка
-    oneOf:
-      - name: app_rating_quiz
-        description: Боттомшита оценки приложения
-      - name: app_rating_stars
-        description: Диалога оценки приложения
-      - name: help
-        description: Экрана "Помощь"
+    type: HHTMSource
