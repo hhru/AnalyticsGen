@@ -14,6 +14,7 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
         case buttonName
         case hhtmSource
         case hhtmFrom
+        case employerId
     }
 
     let eventName = "button_click"
@@ -25,13 +26,17 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
     let hhtmSource = HHTMSource.Applicant.employerScreen
 
     /// После открытия какого экрана была нажата кнопка
-    let hhtmFrom: HHTMSource
+    let hhtmFrom: HHTMSource?
+
+    /// ID работодателя (если есть)
+    let employerId: String?
 
     var parameters: [ParameterKeys: Any?] {
         [
             .buttonName: buttonName,
             .hhtmSource: hhtmSource.value,
-            .hhtmFrom: hhtmFrom.value
+            .hhtmFrom: hhtmFrom?.value,
+            .employerId: employerId
         ]
     }
 }
