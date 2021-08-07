@@ -11,10 +11,10 @@ import Analytics
 struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {
-        case buttonName
-        case hhtmSource
-        case hhtmFrom
-        case employerId
+        case buttonName = "buttonName"
+        case hhtmSource = "hhtmSource"
+        case hhtmFrom = "hhtmFrom"
+        case employerID = "employerId"
     }
 
     let eventName = "button_click"
@@ -29,14 +29,14 @@ struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalytics
     let hhtmFrom: HHTMSource?
 
     /// ID работодателя (если есть)
-    let employerId: String?
+    let employerID: String?
 
     var parameters: [ParameterKeys: Any?] {
         [
             .buttonName: buttonName,
             .hhtmSource: hhtmSource.value,
             .hhtmFrom: hhtmFrom?.value,
-            .employerId: employerId
+            .employerID: employerID
         ]
     }
 }

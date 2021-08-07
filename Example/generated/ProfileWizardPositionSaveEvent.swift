@@ -9,8 +9,8 @@ import Analytics
 struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     enum ParameterKeys: String {
-        case buttonName
-        case type
+        case buttonName = "buttonName"
+        case type = "type"
     }
 
     enum `Type`: String {

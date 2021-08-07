@@ -19,10 +19,6 @@ final class StencilStringWordModificator: StencilStringModificator {
             return string
         }
 
-        guard let range = string.range(of: word, options: .caseInsensitive) else {
-            return string
-        }
-
-        return string[range].uppercased() + string[range.upperBound ..< string.endIndex]
+        return string.replacingOccurrences(of: word, with: word.uppercased(), options: .caseInsensitive)
     }
 }
