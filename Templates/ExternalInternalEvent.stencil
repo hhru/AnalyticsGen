@@ -1,5 +1,5 @@
 {% include "FileHeader.stencil" %}
-{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
+{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|upperWord:"id" }}{% endmacro %}
 {% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords }}{% endmacro %}
 {% set hasParameters %}{% if event.internal.parameters.count > 0 %}true{% else %}{% endif %}{% endset %}
 {% set internalAnalyticsEventType %}{% if hasParameters %}ParametrizedInternalAnalyticsEvent{% else %}InternalAnalyticsEvent{% endif %}{% endset %}
@@ -17,7 +17,7 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent, Us
     {% if hasParameters %}
     enum ParameterKeys: String {
         {% for parameter in event.internal.parameters %}
-        case {% call propertyName parameter.name %}
+        case {% call propertyName parameter.name %} = "{{ parameter.name }}"
         {% endfor %}
     }
     {% endif %}
