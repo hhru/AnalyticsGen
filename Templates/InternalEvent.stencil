@@ -4,6 +4,9 @@
 {% set hasParameters %}{% if event.internal.parameters.count > 0 %}true{% else %}{% endif %}{% endset %}
 {% set internalAnalyticsEventType %}{% if hasParameters %}ParametrizedInternalAnalyticsEvent{% else %}InternalAnalyticsEvent{% endif %}{% endset %}
 
+{% macro optional type %}{% if type|default:""|hasSuffix:"?" %}?{% endif %}{% endmacro %}
+{% macro parameterValue parameterType %}{% if parameterType.oneOf %}.rawValue{% elif parameterType.const.hhtmSource or parameterType.type|default:""|hasPrefix:"HHTMSource" %}{% call optional parameterType.type %}.value{% endif %}{% endmacro %}
+
 import Analytics
 
 /// **Название**: {{ event.name }}
@@ -61,7 +64,7 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent {
     var parameters: [ParameterKeys: Any?] {
         [
             {% for parameter in event.internal.parameters %}
-            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% if parameter.type.oneOf %}.rawValue{% elif parameter.type.const.hhtmSource or parameter.type.type == "HHTMSource" %}.value{% endif %}{% if not forloop.last %},{% endif %}
+            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% call parameterValue parameter.type %}{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     }
