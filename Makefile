@@ -1,6 +1,6 @@
 PREFIX?=/usr/local
 
-PRODUCT_NAME=AnalyticsGen
+PRODUCT_NAME=analyticsgen
 PRODUCT_VERSION=0.1.0
 TEMPLATES_NAME=Templates
 README_NAME=README.md
