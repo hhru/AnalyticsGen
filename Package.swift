@@ -8,6 +8,10 @@ let package = Package(
     platforms: [
        .macOS(.v10_12)
     ],
+    products: [
+        .executable(name: "analyticsgen", targets: ["AnalyticsGen"]),
+        .library(name: "AnalyticsGenTools", targets: ["AnalyticsGenTools"])
+    ],
     dependencies: [
         .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.0"),
         .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.0"),
