@@ -4,8 +4,8 @@
 {% set hasParameters %}{% if event.internal.parameters.count > 0 %}true{% else %}{% endif %}{% endset %}
 {% set internalAnalyticsEventType %}{% if hasParameters %}ParametrizedInternalAnalyticsEvent{% else %}InternalAnalyticsEvent{% endif %}{% endset %}
 
-{% macro optional type %}{% if type|default:""|hasSuffix:"?" %}?{% endif %}{% endmacro %}
-{% macro parameterValue parameterType %}{% if parameterType.oneOf %}.rawValue{% elif parameterType.const.hhtmSource or parameterType.type|default:""|hasPrefix:"HHTMSource" %}{% call optional parameterType.type %}.value{% endif %}{% endmacro %}
+{% macro optional nullable %}{% if nullable %}?{% endif %}{% endmacro %}
+{% macro parameterValue parameter %}{% if parameter.type.oneOf %}{% call optional parameter.nullable %}.rawValue{% elif parameter.type.const.hhtmSource or parameter.type.type|default:""|hasPrefix:"HHTMSource" %}{% call optional parameter.nullable %}.value{% endif %}{% endmacro %}
 
 import Analytics
 
@@ -61,7 +61,7 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent, Us
 
     {% for parameter in event.internal.parameters where parameter.type.type %}
     /// {{ parameter.description }}
-    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize|upperWord:"hhtms" }}
+    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize|upperWord:"hhtms" }}{% call optional parameter.nullable %}
 
     {% endfor %}
     {% for parameter in event.internal.parameters where parameter.type.oneOf %}
@@ -83,7 +83,7 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent, Us
     var parameters: [ParameterKeys: Any?] {
         [
             {% for parameter in event.internal.parameters %}
-            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% call parameterValue parameter.type %}{% if not forloop.last %},{% endif %}
+            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% call parameterValue parameter %}{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     }

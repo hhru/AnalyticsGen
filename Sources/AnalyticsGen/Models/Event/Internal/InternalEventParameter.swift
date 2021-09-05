@@ -10,6 +10,7 @@ struct InternalEventParameter: Codable {
 
         case name
         case description
+        case nullable
         case type
     }
 
@@ -17,6 +18,7 @@ struct InternalEventParameter: Codable {
 
     let name: String
     let description: String?
+    let nullable: Bool
     let type: InternalEventParameterType
 
     // MARK: - Initializers
@@ -35,6 +37,7 @@ struct InternalEventParameter: Codable {
 
         self.name = name
         self.description = try container.decodeIfPresent(forKey: .description)
+        self.nullable = try container.decodeIfPresent(forKey: .nullable) ?? false
         self.type = try InternalEventParameterType(from: decoder)
     }
 }
