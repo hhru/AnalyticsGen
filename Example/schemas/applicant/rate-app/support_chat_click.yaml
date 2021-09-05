@@ -20,7 +20,9 @@ internal:
       hhtmSource: Applicant.employerScreen
   hhtmFrom:
     description: После открытия какого экрана была нажата кнопка
-    type: HHTMSource?
+    nullable: true
+    type: HHTMSource
   employerId:
     description: ID работодателя (если есть)
-    type: string?
+    nullable: true
+    type: string
