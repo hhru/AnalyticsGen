@@ -6,4 +6,5 @@ enum EventApplication: String, Decodable {
 
     case applicant
     case employer
+    case hrMobile = "hr-mobile"
 }

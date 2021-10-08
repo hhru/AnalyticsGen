@@ -2,15 +2,6 @@ import Foundation
 
 enum ExternalEventAction: Decodable {
 
-    // MARK: - Nested Types
-
-    enum CodingKeys: String, CodingKey {
-
-        // MARK: - Enumeration Cases
-
-        case type
-    }
-
     // MARK: - Enumeration Cases
 
     case string(String)
@@ -22,9 +13,7 @@ enum ExternalEventAction: Decodable {
         if let string = try? String(from: decoder) {
             self = .string(string)
         } else {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-
-            self = .property(try container.decode(forKey: .type))
+            self = .property(try ExternalEventProperty(from: decoder))
         }
     }
 }

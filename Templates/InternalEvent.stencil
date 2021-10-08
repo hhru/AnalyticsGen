@@ -28,7 +28,9 @@ import Analytics
     {% for parameter in parameters where parameter.oneOf %}
     {{ accessModifier }} enum {% call enumName parameter.name %}: String, Encodable {
         {% for oneOf in parameter.oneOf %}
+            {% if oneOf.description %}
         /// {{ oneOf.description }}
+            {% endif %}
         case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
 

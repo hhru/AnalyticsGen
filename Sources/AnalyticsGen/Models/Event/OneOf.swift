@@ -5,5 +5,5 @@ struct OneOf: Codable {
     // MARK: - Instance Properties
 
     let name: String
-    let description: String
+    let description: String?
 }
