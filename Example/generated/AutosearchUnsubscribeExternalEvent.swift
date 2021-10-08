@@ -9,9 +9,9 @@ import Analytics
  - **Описание**: Пользователь отключил уведомления подписки
  - **Категория**: Автопоиск
  */
-struct AutosearchUnsubscribeExternalEvent: UserCategoryEvent {
+public struct AutosearchUnsubscribeExternalEvent: UserCategoryEvent {
 
-    enum Label: String {
+    public enum Label: String {
         /// Пользователь отключил уведомления подписки с автопоиска
         case autosearch
 
@@ -19,13 +19,21 @@ struct AutosearchUnsubscribeExternalEvent: UserCategoryEvent {
         case autosearchList
     }
 
-    let action = "autosearch-unsubscribe"
+    public let action = "autosearch-unsubscribe"
 
-    let isLoggedIn: Bool
+    public let oneOfLabel: Label
 
-    let oneOfLabel: Label
-
-    var label: String {
+    public var label: String {
         oneOfLabel.rawValue
+    }
+
+    public let isLoggedIn: Bool
+
+    public init(
+        label: Label,
+        isLoggedIn: Bool
+    ) {
+        self.oneOfLabel = label
+        self.isLoggedIn = isLoggedIn
     }
 }

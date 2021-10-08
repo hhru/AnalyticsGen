@@ -2,6 +2,8 @@
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
 {% macro optional types %}{% if nullable %}?{% endif %}{% endmacro %}
 
+{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+
 import Analytics
 
 /**
@@ -10,10 +12,10 @@ import Analytics
  - **Описание**: {{ description }}
  - **Категория**: {{ category }}
  */
-struct {{ structName }}: UserCategoryEvent {
+{{ accessModifier }} struct {{ structName }}: UserCategoryEvent {
 
     {% if label.oneOf %}
-    enum Label: String {
+    {{ accessModifier }} enum Label: String {
         {% for oneOf in label.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %}
@@ -28,25 +30,47 @@ struct {{ structName }}: UserCategoryEvent {
         {% if action.description %}
     /// {{ action.description }}
         {% endif %}
-    let action: String
-    {% else %}
-    let action = "{{ action.value }}"
+    {{ accessModifier }} let action: String
+    {% elif action.value %}
+    {{ accessModifier }} let action = "{{ action.value }}"
     {% endif %}
-
-    let isLoggedIn: Bool
 
     {% if label %}
         {% if label.oneOf %}
-    let oneOfLabel: Label
+    {{ accessModifier }} let oneOfLabel: Label
 
-    var label: String {
+    {{ accessModifier }} var label: String {
         oneOfLabel.rawValue
     }
         {% else %}
             {% if label.description %}
     /// {{ label.description }}
             {% endif %}
-    let label: String
+    {{ accessModifier }} let label: String
         {% endif %}
     {% endif %}
+
+    {{ accessModifier }} let isLoggedIn: Bool
+
+    {{ accessModifier }} init(
+        {% if action.type %}
+        action: String,
+        {% endif %}
+        {% if label.oneOf %}
+        label: Label,
+        {% elif label %}
+        label: String,
+        {% endif %}
+        isLoggedIn: Bool
+    ) {
+        {% if action.type %}
+        self.action = action
+        {% endif %}
+        {% if label.oneOf%}
+        self.oneOfLabel = label
+        {% elif label %}
+        self.label = label
+        {% endif %}
+        self.isLoggedIn = isLoggedIn
+    }
 }

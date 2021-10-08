@@ -9,7 +9,7 @@ struct TemplateConfiguration: Decodable {
 
         // MARK: - Instance Properties
 
-        let path: String
+        let path: String?
         let options: [String: AnyCodable]?
     }
 

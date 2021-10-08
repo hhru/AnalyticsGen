@@ -2,6 +2,8 @@
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|upperWord:"id" }}{% endmacro %}
 {% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
 
+{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+
 import Analytics
 
 /**
@@ -13,9 +15,9 @@ import Analytics
  - **Эксперимент**: [{{ experiment.description }}]({{ experiment.url }})
 {% endif %}
  */
-struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+{{ accessModifier }} struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
-    enum CodingKeys: String, CodingKey {
+    {{ accessModifier }} enum CodingKeys: String, CodingKey {
         {% for parameter in parameters %}
         case {% call propertyName parameter.name %} = "{{ parameter.name }}"
         {% endfor %}
@@ -24,7 +26,7 @@ struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent
     }
 
     {% for parameter in parameters where parameter.oneOf %}
-    enum {% call enumName parameter.name %}: String, Encodable {
+    {{ accessModifier }} enum {% call enumName parameter.name %}: String, Encodable {
         {% for oneOf in parameter.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
@@ -35,22 +37,40 @@ struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent
     }
     {% endfor %}
 
-    let eventName = "{{ eventName }}"
+    {{ accessModifier }} let eventName = "{{ eventName }}"
 
-    let hhtmSource: HHTMSource?
-    let hhtmFrom: HHTMFrom?
+    {{ accessModifier }} let hhtmSource: HHTMSource?
+    {{ accessModifier }} let hhtmFrom: HHTMFrom?
 
     {% for parameter in parameters %}
         {% if parameter.description %}
     /// {{ parameter.description }}
         {% endif %}
         {% if parameter.const %}
-    let {% call propertyName parameter.name %} = "{{ parameter.const }}"
+    {{ accessModifier }} let {% call propertyName parameter.name %} = "{{ parameter.const }}"
         {% elif parameter.type %}
-    let {% call propertyName parameter.name %}: {{ parameter.type }}
+    {{ accessModifier }} let {% call propertyName parameter.name %}: {{ parameter.type }}
         {% elif parameter.oneOf %}
-    let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
+    {{ accessModifier }} let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
         {% endif %}
 
     {% endfor %}
+
+    {{ accessModifier }} init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom{% if parameters %},{% endif %}
+        {% for parameter in parameters %}
+            {% if parameter.type %}
+        {% call propertyName parameter.name %}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
+            {% elif parameter.oneOf %}
+        {% call propertyName parameter.name %}: {% call enumName parameter.name %}{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+        {% for parameter in parameters where parameter.type or parameter.oneOf %}
+        self.{% call propertyName parameter.name %} = {% call propertyName parameter.name %}
+        {% endfor %}
+    }
 }

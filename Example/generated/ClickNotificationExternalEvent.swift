@@ -9,9 +9,9 @@ import Analytics
  - **Описание**: Пользователь кликнул на уведомление на экране "Уведомления"
  - **Категория**: Разное
  */
-struct ClickNotificationExternalEvent: UserCategoryEvent {
+public struct ClickNotificationExternalEvent: UserCategoryEvent {
 
-    enum Label: String {
+    public enum Label: String {
         /// Пользователь нажал «Оценить приложение» во всплывающем уведомлении
         case notifications
 
@@ -19,13 +19,21 @@ struct ClickNotificationExternalEvent: UserCategoryEvent {
         case elsePage
     }
 
-    let action = "click-notification"
+    public let action = "click-notification"
 
-    let isLoggedIn: Bool
+    public let oneOfLabel: Label
 
-    let oneOfLabel: Label
-
-    var label: String {
+    public var label: String {
         oneOfLabel.rawValue
+    }
+
+    public let isLoggedIn: Bool
+
+    public init(
+        label: Label,
+        isLoggedIn: Bool
+    ) {
+        self.oneOfLabel = label
+        self.isLoggedIn = isLoggedIn
     }
 }

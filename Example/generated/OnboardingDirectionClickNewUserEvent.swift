@@ -9,16 +9,23 @@ import Analytics
  - **Описание**: Пользователь кликнул на "Я новый"
  - **Категория**: Онбоардинг
  */
-struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case hhtmSource
         case hhtmFrom
     }
 
-    let eventName = "onboardingNewUserClick"
+    public let eventName = "onboardingNewUserClick"
 
-    let hhtmSource: HHTMSource?
-    let hhtmFrom: HHTMFrom?
+    public let hhtmSource: HHTMSource?
+    public let hhtmFrom: HHTMFrom?
 
+    public init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+    }
 }

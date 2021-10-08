@@ -9,16 +9,23 @@ import Analytics
  - **Описание**: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме.
  - **Категория**: Профиль-резюме
  */
-struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case hhtmSource
         case hhtmFrom
     }
 
-    let eventName = "button_click"
+    public let eventName = "button_click"
 
-    let hhtmSource: HHTMSource?
-    let hhtmFrom: HHTMFrom?
+    public let hhtmSource: HHTMSource?
+    public let hhtmFrom: HHTMFrom?
 
+    public init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+    }
 }

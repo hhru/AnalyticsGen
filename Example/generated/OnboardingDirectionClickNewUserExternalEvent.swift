@@ -9,20 +9,28 @@ import Analytics
  - **Описание**: Пользователь кликнул на "Я новый"
  - **Категория**: Онбоардинг
  */
-struct OnboardingDirectionClickNewUserExternalEvent: UserCategoryEvent {
+public struct OnboardingDirectionClickNewUserExternalEvent: UserCategoryEvent {
 
-    enum Label: String {
+    public enum Label: String {
         /// --
         case success
     }
 
-    let action = "onboarding-direction-click-new-user"
+    public let action = "onboarding-direction-click-new-user"
 
-    let isLoggedIn: Bool
+    public let oneOfLabel: Label
 
-    let oneOfLabel: Label
-
-    var label: String {
+    public var label: String {
         oneOfLabel.rawValue
+    }
+
+    public let isLoggedIn: Bool
+
+    public init(
+        label: Label,
+        isLoggedIn: Bool
+    ) {
+        self.oneOfLabel = label
+        self.isLoggedIn = isLoggedIn
     }
 }
