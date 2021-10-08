@@ -1,6 +1,6 @@
 import Foundation
 
-enum ExternalEventCategory: String, Codable {
+enum ExternalEventCategory: String, Decodable {
 
     // MARK: - Enumeration Cases
 

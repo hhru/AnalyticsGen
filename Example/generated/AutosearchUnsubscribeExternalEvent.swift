@@ -1,12 +1,15 @@
 // swiftlint:disable all
 // Generated using AnalyticsGen
 
-import Foundation
+import Analytics
 
-/// **Название**: Отписка от автопоиска
-/// **Описание**: Пользователь отключил уведомления подписки
-/// **Категория**: Автопоиск
-struct AutosearchUnsubscribeEvent: UserCategoryEvent {
+/**
+ Отписка от автопоиска
+
+ - **Описание**: Пользователь отключил уведомления подписки
+ - **Категория**: Автопоиск
+ */
+struct AutosearchUnsubscribeExternalEvent: UserCategoryEvent {
 
     enum Label: String {
         /// Пользователь отключил уведомления подписки с автопоиска
@@ -18,6 +21,11 @@ struct AutosearchUnsubscribeEvent: UserCategoryEvent {
 
     let action = "autosearch-unsubscribe"
 
-    let label: Label
     let isLoggedIn: Bool
+
+    let oneOfLabel: Label
+
+    var label: String {
+        oneOfLabel.rawValue
+    }
 }

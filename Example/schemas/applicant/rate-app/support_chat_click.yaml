@@ -16,13 +16,10 @@ internal:
     description: Какая-либо кнопка написания в поддержку
   hhtmSource:
     description: Где находится кнопка
-    const:
-      hhtmSource: Applicant.employerScreen
+    const: employer
   hhtmFrom:
     description: После открытия какого экрана была нажата кнопка
-    nullable: true
-    type: HHTMSource
+    type: [string, null]
   employerId:
     description: ID работодателя (если есть)
-    nullable: true
-    type: string
+    type: [string, null]

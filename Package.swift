@@ -13,8 +13,8 @@ let package = Package(
         .library(name: "AnalyticsGenTools", targets: ["AnalyticsGenTools"])
     ],
     dependencies: [
-        .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.0"),
-        .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.3"),
+        .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.1"),
         .package(url: "https://github.com/onevcat/Rainbow", from: "3.0.0"),
         .package(url: "https://github.com/mxcl/PromiseKit", from: "6.8.0"),
         .package(url: "https://github.com/kylef/Stencil.git", from: "0.13.0"),

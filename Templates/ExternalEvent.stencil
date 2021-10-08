@@ -1,16 +1,20 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
+{% macro optional types %}{% if nullable %}?{% endif %}{% endmacro %}
 
-import Foundation
+import Analytics
 
-/// **Название**: {{ event.name }}
-/// **Описание**: {{ event.description }}
-/// **Категория**: {{ event.category }}
-struct {{ filename }}: UserCategoryEvent {
+/**
+ {{ name }}
 
-    {% if event.external.label %}
+ - **Описание**: {{ description }}
+ - **Категория**: {{ category }}
+ */
+struct {{ structName }}: UserCategoryEvent {
+
+    {% if label.oneOf %}
     enum Label: String {
-        {% for oneOf in event.external.label.oneOf %}
+        {% for oneOf in label.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %}
         {% if not forloop.last %}
@@ -20,14 +24,29 @@ struct {{ filename }}: UserCategoryEvent {
     }
     {% endif %}
 
-    let action = "{{ event.external.action }}"
+    {% if action.type %}
+        {% if action.description %}
+    /// {{ action.description }}
+        {% endif %}
+    let action: String
+    {% else %}
+    let action = "{{ action.value }}"
+    {% endif %}
 
-    {% if event.external.label %}
-        {% if event.external.label.oneOf.count == 1 %}
-    let label: Label = .{% call propertyName event.external.label.oneOf.0.name %}
+    let isLoggedIn: Bool
+
+    {% if label %}
+        {% if label.oneOf %}
+    let oneOfLabel: Label
+
+    var label: String {
+        oneOfLabel.rawValue
+    }
         {% else %}
-    let label: Label
+            {% if label.description %}
+    /// {{ label.description }}
+            {% endif %}
+    let label: String
         {% endif %}
     {% endif %}
-    let isLoggedIn: Bool
 }

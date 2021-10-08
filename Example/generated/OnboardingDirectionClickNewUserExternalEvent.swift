@@ -9,16 +9,20 @@ import Analytics
  - **Описание**: Пользователь кликнул на "Я новый"
  - **Категория**: Онбоардинг
  */
-struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+struct OnboardingDirectionClickNewUserExternalEvent: UserCategoryEvent {
 
-    enum CodingKeys: String, CodingKey {
-        case hhtmSource
-        case hhtmFrom
+    enum Label: String {
+        /// --
+        case success
     }
 
-    let eventName = "onboardingNewUserClick"
+    let action = "onboarding-direction-click-new-user"
 
-    let hhtmSource: HHTMSource?
-    let hhtmFrom: HHTMFrom?
+    let isLoggedIn: Bool
 
+    let oneOfLabel: Label
+
+    var label: String {
+        oneOfLabel.rawValue
+    }
 }

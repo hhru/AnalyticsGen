@@ -1,6 +1,6 @@
 import Foundation
 
-enum EventPlatform: String, Codable {
+enum EventPlatform: String, Decodable {
 
     // MARK: - Enumeration Cases
 

@@ -1,34 +1,31 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|upperWord:"id" }}{% endmacro %}
 {% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
-{% set hasParameters %}{% if event.internal.parameters.count > 0 %}true{% else %}{% endif %}{% endset %}
-{% set internalAnalyticsEventType %}{% if hasParameters %}ParametrizedInternalAnalyticsEvent{% else %}InternalAnalyticsEvent{% endif %}{% endset %}
-
-{% macro optional nullable %}{% if nullable %}?{% endif %}{% endmacro %}
-{% macro parameterValue parameter %}{% if parameter.type.oneOf %}{% call optional parameter.nullable %}.rawValue{% elif parameter.type.const.hhtmSource or parameter.type.type|default:""|hasPrefix:"HHTMSource" %}{% call optional parameter.nullable %}.value{% endif %}{% endmacro %}
 
 import Analytics
 
-/// **Название**: {{ event.name }}
-/// **Описание**: {{ event.description }}
-/// **Категория**: {{ event.category }}
-{% if event.experiment %}
-/// **Эксперимент**:
-/// {{ event.experiment.url }} ({{ event.experiment.description }})
-{% endif %}
-struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent {
+/**
+ {{ name }}
 
-    {% if hasParameters %}
-    enum ParameterKeys: String {
-        {% for parameter in event.internal.parameters %}
+ - **Описание**: {{ description }}
+ - **Категория**: {{ category }}
+ {% if event.experiment %}
+ - **Эксперимент**: [{{ experiment.description }}]({{ experiment.url }})
+{% endif %}
+ */
+struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+
+    enum CodingKeys: String, CodingKey {
+        {% for parameter in parameters %}
         case {% call propertyName parameter.name %} = "{{ parameter.name }}"
         {% endfor %}
+        case hhtmSource
+        case hhtmFrom
     }
-    {% endif %}
 
-    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
-    enum {% call enumName parameter.name %}: String {
-        {% for oneOf in parameter.type.oneOf %}
+    {% for parameter in parameters where parameter.oneOf %}
+    enum {% call enumName parameter.name %}: String, Encodable {
+        {% for oneOf in parameter.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
@@ -36,37 +33,24 @@ struct {{ filename }}: {{ internalAnalyticsEventType }}, SlashAnalyticsEvent {
         {% endif %}
         {% endfor %}
     }
-
-    {% endfor %}
-    let eventName = "{{ event.internal.event }}"
-
-    {% for parameter in event.internal.parameters where parameter.type.const %}
-    /// {{ parameter.description }}
-    {% if parameter.type.const.hhtmSource %}
-    let {% call propertyName parameter.name %} = HHTMSource.{{ parameter.type.const.hhtmSource }}
-    {% else %}
-    let {% call propertyName parameter.name %} = "{{ parameter.type.const }}"
-    {% endif %}
-
     {% endfor %}
 
-    {% for parameter in event.internal.parameters where parameter.type.type %}
-    /// {{ parameter.description }}
-    let {% call propertyName parameter.name %}: {{ parameter.type.type|capitalize|upperWord:"hhtms" }}{% call optional parameter.nullable %}
+    let eventName = "{{ eventName }}"
 
-    {% endfor %}
-    {% for parameter in event.internal.parameters where parameter.type.oneOf %}
+    let hhtmSource: HHTMSource?
+    let hhtmFrom: HHTMFrom?
+
+    {% for parameter in parameters %}
+        {% if parameter.description %}
     /// {{ parameter.description }}
+        {% endif %}
+        {% if parameter.const %}
+    let {% call propertyName parameter.name %} = "{{ parameter.const }}"
+        {% elif parameter.type %}
+    let {% call propertyName parameter.name %}: {{ parameter.type }}
+        {% elif parameter.oneOf %}
     let {% call propertyName parameter.name %}: {% call enumName parameter.name %}
+        {% endif %}
 
     {% endfor %}
-    {% if hasParameters %}
-    var parameters: [ParameterKeys: Any?] {
-        [
-            {% for parameter in event.internal.parameters %}
-            .{% call propertyName parameter.name %}: {% call propertyName parameter.name %}{% call parameterValue parameter %}{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ]
-    }
-    {% endif %}
 }

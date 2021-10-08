@@ -6,7 +6,6 @@ protocol GenerationParametersResolving {
 
     var defaultInternalTemplateType: RenderTemplateType { get }
     var defaultExternalTemplateType: RenderTemplateType { get }
-    var defaultExternalInternalTemplateType: RenderTemplateType { get }
     var defaultDestination: RenderDestination { get }
 
     // MARK: - Instance Methods
@@ -36,14 +35,6 @@ extension GenerationParametersResolving {
         }
     }
 
-    private func resolveExternalInternalTemplateType(configuration: Configuration) -> RenderTemplateType {
-        if let templatesPath = configuration.template?.externalInternal?.path {
-            return .custom(path: templatesPath)
-        } else {
-            return defaultExternalInternalTemplateType
-        }
-    }
-
     private func resolveDestination(configuration: Configuration) -> RenderDestination {
         if let destinationPath = configuration.destination {
             return .file(path: destinationPath)
@@ -57,7 +48,6 @@ extension GenerationParametersResolving {
     func resolveGenerationParameters(from configuration: Configuration) throws -> GenerationParameters {
         let internalTemplateType = resolveInternalTemplateType(configuration: configuration)
         let externalTemplateType = resolveExternalTemplateType(configuration: configuration)
-        let externalInternalTemplateType = resolveExternalInternalTemplateType(configuration: configuration)
 
         let internalTemplate = RenderTemplate(
             type: internalTemplateType,
@@ -77,21 +67,11 @@ extension GenerationParametersResolving {
                 .mapValues { $0.value } ?? [:]
         )
 
-        let externalInternalTemplate = RenderTemplate(
-            type: externalInternalTemplateType,
-            options: configuration
-                .template?
-                .externalInternal?
-                .options?
-                .mapValues { $0.value } ?? [:]
-        )
-
         let destination = resolveDestination(configuration: configuration)
 
         let render = RenderParameters(
             internalTemplate: internalTemplate,
             externalTemplate: externalTemplate,
-            externalInternalTemplate: externalInternalTemplate,
             destination: destination
         )
 

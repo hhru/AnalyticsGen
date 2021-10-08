@@ -1,12 +1,15 @@
 // swiftlint:disable all
 // Generated using AnalyticsGen
 
-import Foundation
+import Analytics
 
-/// **Название**: Открытие уведомления
-/// **Описание**: Пользователь кликнул на уведомление на экране "Уведомления"
-/// **Категория**: Разное
-struct ClickNotificationEvent: UserCategoryEvent {
+/**
+ Открытие уведомления
+
+ - **Описание**: Пользователь кликнул на уведомление на экране "Уведомления"
+ - **Категория**: Разное
+ */
+struct ClickNotificationExternalEvent: UserCategoryEvent {
 
     enum Label: String {
         /// Пользователь нажал «Оценить приложение» во всплывающем уведомлении
@@ -18,6 +21,11 @@ struct ClickNotificationEvent: UserCategoryEvent {
 
     let action = "click-notification"
 
-    let label: Label
     let isLoggedIn: Bool
+
+    let oneOfLabel: Label
+
+    var label: String {
+        oneOfLabel.rawValue
+    }
 }
