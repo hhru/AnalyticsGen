@@ -4,6 +4,7 @@ import Yams
 import AnalyticsGenTools
 import JSONSchema
 import DictionaryCoder
+import KeychainAccess
 
 final class DefaultEventGenerator: EventGenerator {
 
@@ -198,6 +199,15 @@ private extension AccessTokenConfiguration {
         case .environmentVariable(let environmentVariable):
             guard let token = ProcessInfo.processInfo.environment[environmentVariable] else {
                 throw MessageError("Environment variable '\(environmentVariable)' not found.")
+            }
+
+            return token
+
+        case .keychain(let parameters):
+            let keychain = Keychain(service: parameters.service)
+
+            guard let token = try keychain.getString(parameters.key) else {
+                throw MessageError("Failed to obtain token from keychain")
             }
 
             return token
