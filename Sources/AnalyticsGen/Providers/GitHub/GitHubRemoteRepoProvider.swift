@@ -19,8 +19,8 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
 
     // MARK: -
 
-    func fetchRepo(owner: String, repo: String, branch: String, username: String, token: String) -> Promise<URL> {
-        guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(branch)") else {
+    func fetchRepo(owner: String, repo: String, ref: String, username: String, token: String) -> Promise<URL> {
+        guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(ref)") else {
             return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
         }
 
