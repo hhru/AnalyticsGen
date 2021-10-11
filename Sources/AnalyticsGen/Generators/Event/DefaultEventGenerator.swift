@@ -42,7 +42,7 @@ final class DefaultEventGenerator: EventGenerator {
                 .fetchRepo(
                     owner: gitHubConfiguration.owner,
                     repo: gitHubConfiguration.repo,
-                    ref: gitHubConfiguration.ref,
+                    ref: gitHubConfiguration.ref.name,
                     username: gitHubConfiguration.username,
                     token: try gitHubConfiguration.accessToken.resolveToken()
                 )
