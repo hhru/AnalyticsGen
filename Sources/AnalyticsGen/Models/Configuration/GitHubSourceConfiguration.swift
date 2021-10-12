@@ -8,6 +8,5 @@ struct GitHubSourceConfiguration: Decodable {
     let repo: String
     let path: String?
     let ref: GitHubReferenceConfiguration
-    let username: String
     let accessToken: AccessTokenConfiguration
 }
