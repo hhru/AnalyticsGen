@@ -11,7 +11,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
 
     // MARK: - RemoteRepoProvider
 
-    func fetchRepo(owner: String, repo: String, ref: String, username: String, token: String) -> Promise<URL> {
+    func fetchRepo(owner: String, repo: String, ref: String, token: String) -> Promise<URL> {
         guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(ref)") else {
             return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
         }
@@ -22,9 +22,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                     route: HTTPRoute(
                         method: .get,
                         url: downloadURL,
-                        headers: [
-                            .authorization(username: username, password: token)
-                        ]
+                        headers: [.authorization(bearerToken: token)]
                     )
                 )
                 .responseData { httpResponse in
@@ -57,13 +55,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
         }
     }
 
-    func fetchReference(
-        owner: String,
-        repo: String,
-        ref: String,
-        username: String,
-        token: String
-    ) -> Promise<GitReference> {
+    func fetchReference(owner: String, repo: String, ref: String, token: String) -> Promise<GitReference> {
         guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/git/ref/\(ref)") else {
             return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
         }
@@ -74,7 +66,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                     route: HTTPRoute(
                         method: .get,
                         url: url,
-                        headers: [.authorization(username: username, password: token)]
+                        headers: [.authorization(bearerToken: token)]
                     )
                 )
                 .responseDecodable(type: GitReference.self) { httpResponse in

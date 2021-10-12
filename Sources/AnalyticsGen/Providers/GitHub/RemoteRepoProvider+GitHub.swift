@@ -13,7 +13,6 @@ extension RemoteRepoProvider {
                 owner: configuration.owner,
                 repo: configuration.repo,
                 ref: configuration.ref.name,
-                username: configuration.username,
                 token: try configuration.accessToken.resolveToken()
             ).pipe(to: seal.resolve(_:))
         }
@@ -25,7 +24,6 @@ extension RemoteRepoProvider {
                 owner: configuration.owner,
                 repo: configuration.repo,
                 ref: configuration.ref.formatted,
-                username: configuration.username,
                 token: try configuration.accessToken.resolveToken()
             ).pipe(to: seal.resolve(_:))
         }
