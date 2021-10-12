@@ -4,14 +4,12 @@ import Yams
 import AnalyticsGenTools
 import JSONSchema
 import DictionaryCoder
-import KeychainAccess
 
 final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - Instance Properties
 
-    let configurationProvider: ConfigurationProvider
-    let eventProvider: EventProvider
+    let fileProvider: FileProvider
     let remoteRepoProvider: RemoteRepoProvider
     let templateRenderer: TemplateRenderer
     let dictionaryDecoder: DictionaryDecoder
@@ -19,17 +17,29 @@ final class DefaultEventGenerator: EventGenerator {
     // MARK: - Initializers
 
     init(
-        configurationProvider: ConfigurationProvider,
-        eventProvider: EventProvider,
+        fileProvider: FileProvider,
         remoteRepoProvider: RemoteRepoProvider,
         templateRenderer: TemplateRenderer,
         dictionaryDecoder: DictionaryDecoder
     ) {
-        self.configurationProvider = configurationProvider
-        self.eventProvider = eventProvider
+        self.fileProvider = fileProvider
         self.remoteRepoProvider = remoteRepoProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
+    }
+
+    // MARK: - Instance Methods
+
+    private func fetchGitReference(configuration: Configuration) throws -> Promise<GitReference?> {
+        switch configuration.source {
+        case .local:
+            return .value(.none)
+
+        case .gitHub(let gitHubConfiguration):
+            return remoteRepoProvider
+                .fetchReference(gitHubConfiguration: gitHubConfiguration)
+                .asOptional()
+        }
     }
 
     private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
@@ -39,13 +49,7 @@ final class DefaultEventGenerator: EventGenerator {
 
         case .gitHub(let gitHubConfiguration):
             return remoteRepoProvider
-                .fetchRepo(
-                    owner: gitHubConfiguration.owner,
-                    repo: gitHubConfiguration.repo,
-                    ref: gitHubConfiguration.ref.name,
-                    username: gitHubConfiguration.username,
-                    token: try gitHubConfiguration.accessToken.resolveToken()
-                )
+                .fetchRepo(gitHubConfiguration: gitHubConfiguration)
                 .map { path in
                     gitHubConfiguration.path.map { path.appendingPathComponent($0) } ?? path
                 }
@@ -111,7 +115,7 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: Configuration, schemasPath: URL) throws {
+    private func generate(configuration: Configuration, schemasPath: URL, remoteGitReference: GitReference?) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -119,23 +123,42 @@ final class DefaultEventGenerator: EventGenerator {
         let generarionParameters = try resolveGenerationParameters(from: configuration)
 
         for case let schemaURL as URL in enumerator where schemaURL.pathExtension == .yamlExtension {
-            Log.info("Fetching schema: \(schemaURL)")
+            Log.info("Fetching schema: \(schemaURL.lastPathComponent)")
 
-            let event = try eventProvider.fetchEvent(from: schemaURL)
+            let event: Event = try fileProvider.readFile(at: schemaURL.path)
 
             try generate(parameters: generarionParameters, event: event, schemaURL: schemaURL)
+        }
+
+        if let reference = remoteGitReference {
+            try fileProvider.writeFile(content: reference, at: .lockFilePath)
         }
     }
 
     // MARK: - EventGenerator
 
-    func generate(configurationPath: String) -> Promise<Void> {
+    func generate(configurationPath: String) -> Promise<EventGenerationResult> {
         firstly {
-            configurationProvider.fetchConfiguration(from: configurationPath)
+            fileProvider.readFile(at: configurationPath)
         }.then { configuration in
-            try self.resolveSchemasPath(configuration: configuration).map { (configuration, $0) }
-        }.done { configuration, schemasPath in
-            try self.generate(configuration: configuration, schemasPath: schemasPath)
+            try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
+        }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
+            let lockReference: GitReference? = try self.fileProvider.readFileIfExists(at: .lockFilePath)
+
+            guard lockReference != remoteGitReference else {
+                return .value(.upToDate)
+            }
+
+            return try self
+                .resolveSchemasPath(configuration: configuration)
+                .done {
+                    try self.generate(
+                        configuration: configuration,
+                        schemasPath: $0,
+                        remoteGitReference: remoteGitReference
+                    )
+                }
+                .map { .success }
         }
     }
 }
@@ -183,34 +206,5 @@ private extension String {
     // MARK: - Type Properties
 
     static let yamlExtension = "yaml"
-}
-
-// MARK: -
-
-private extension AccessTokenConfiguration {
-
-    // MARK: - Instance Methods
-
-    func resolveToken() throws -> String {
-        switch self {
-        case .value(let token):
-            return token
-
-        case .environmentVariable(let environmentVariable):
-            guard let token = ProcessInfo.processInfo.environment[environmentVariable] else {
-                throw MessageError("Environment variable '\(environmentVariable)' not found.")
-            }
-
-            return token
-
-        case .keychain(let parameters):
-            let keychain = Keychain(service: parameters.service)
-
-            guard let token = try keychain.getString(parameters.key) else {
-                throw MessageError("Failed to obtain token from keychain")
-            }
-
-            return token
-        }
-    }
+    static let lockFilePath = ".analyticsGen.lock"
 }

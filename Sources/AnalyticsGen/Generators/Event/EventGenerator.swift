@@ -5,5 +5,5 @@ protocol EventGenerator {
 
     // MARK: - Instance Methods
 
-    func generate(configurationPath: String) -> Promise<Void>
+    func generate(configurationPath: String) -> Promise<EventGenerationResult>
 }
