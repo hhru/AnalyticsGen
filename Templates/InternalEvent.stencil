@@ -42,7 +42,7 @@ import Analytics
     {{ accessModifier }} let eventName = "{{ eventName }}"
 
     {{ accessModifier }} let hhtmSource: HHTMSource?
-    {{ accessModifier }} let hhtmFrom: HHTMFrom?
+    {{ accessModifier }} let hhtmFrom: HHTMSource?
 
     {% for parameter in parameters %}
         {% if parameter.description %}
@@ -60,7 +60,7 @@ import Analytics
 
     {{ accessModifier }} init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMFrom?{% if parameters %},{% endif %}
+        hhtmFrom: HHTMSource?{% if parameters %},{% endif %}
         {% for parameter in parameters %}
             {% if parameter.type %}
         {% call propertyName parameter.name %}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
