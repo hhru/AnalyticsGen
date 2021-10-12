@@ -60,7 +60,7 @@ import Analytics
 
     {{ accessModifier }} init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMFrom{% if parameters %},{% endif %}
+        hhtmFrom: HHTMFrom?{% if parameters %},{% endif %}
         {% for parameter in parameters %}
             {% if parameter.type %}
         {% call propertyName parameter.name %}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
