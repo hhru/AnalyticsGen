@@ -3,13 +3,29 @@
 
 import Analytics
 
-/// **Название**: Нажатие на кнопку "Подтвердить номер" (баннер на профиле)
-/// **Описание**: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме.
-/// **Категория**: Профиль-резюме
-/// **Эксперимент**:
-/// https://jira.hh.ru/browse/PORTFOLIO-12870 (Отклик одним резюме)
-struct ProfilePhoneVerificationBannerClickEvent: InternalAnalyticsEvent, SlashAnalyticsEvent {
+/**
+ Нажатие на кнопку "Подтвердить номер" (баннер на профиле)
 
-    let eventName = "button_click"
+ - **Описание**: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме.
+ - **Категория**: Профиль-резюме
+ */
+public struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
+    public enum CodingKeys: String, CodingKey {
+        case hhtmSource
+        case hhtmFrom
+    }
+
+    public let eventName = "button_click"
+
+    public let hhtmSource: HHTMSource?
+    public let hhtmFrom: HHTMFrom?
+
+    public init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+    }
 }

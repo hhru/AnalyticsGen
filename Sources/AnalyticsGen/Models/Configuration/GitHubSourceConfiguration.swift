@@ -7,7 +7,7 @@ struct GitHubSourceConfiguration: Decodable {
     let owner: String
     let repo: String
     let path: String?
-    let branch: String
+    let ref: GitHubReferenceConfiguration
     let username: String
     let accessToken: AccessTokenConfiguration
 }

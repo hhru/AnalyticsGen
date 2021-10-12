@@ -1,16 +1,22 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
+{% macro optional types %}{% if nullable %}?{% endif %}{% endmacro %}
 
-import Foundation
+{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
 
-/// **Название**: {{ event.name }}
-/// **Описание**: {{ event.description }}
-/// **Категория**: {{ event.category }}
-struct {{ filename }}: UserCategoryEvent {
+import Analytics
 
-    {% if event.external.label %}
-    enum Label: String {
-        {% for oneOf in event.external.label.oneOf %}
+/**
+ {{ name }}
+
+ - **Описание**: {{ description }}
+ - **Категория**: {{ category }}
+ */
+{{ accessModifier }} struct {{ structName }}: UserCategoryEvent {
+
+    {% if label.oneOf %}
+    {{ accessModifier }} enum Label: String {
+        {% for oneOf in label.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %}
         {% if not forloop.last %}
@@ -20,14 +26,51 @@ struct {{ filename }}: UserCategoryEvent {
     }
     {% endif %}
 
-    let action = "{{ event.external.action }}"
+    {% if action.type %}
+        {% if action.description %}
+    /// {{ action.description }}
+        {% endif %}
+    {{ accessModifier }} let action: String
+    {% elif action.value %}
+    {{ accessModifier }} let action = "{{ action.value }}"
+    {% endif %}
 
-    {% if event.external.label %}
-        {% if event.external.label.oneOf.count == 1 %}
-    let label: Label = .{% call propertyName event.external.label.oneOf.0.name %}
+    {% if label %}
+        {% if label.oneOf %}
+    {{ accessModifier }} let oneOfLabel: Label
+
+    {{ accessModifier }} var label: String {
+        oneOfLabel.rawValue
+    }
         {% else %}
-    let label: Label
+            {% if label.description %}
+    /// {{ label.description }}
+            {% endif %}
+    {{ accessModifier }} let label: String
         {% endif %}
     {% endif %}
-    let isLoggedIn: Bool
+
+    {{ accessModifier }} let isLoggedIn: Bool
+
+    {{ accessModifier }} init(
+        {% if action.type %}
+        action: String,
+        {% endif %}
+        {% if label.oneOf %}
+        label: Label,
+        {% elif label %}
+        label: String,
+        {% endif %}
+        isLoggedIn: Bool
+    ) {
+        {% if action.type %}
+        self.action = action
+        {% endif %}
+        {% if label.oneOf%}
+        self.oneOfLabel = label
+        {% elif label %}
+        self.label = label
+        {% endif %}
+        self.isLoggedIn = isLoggedIn
+    }
 }

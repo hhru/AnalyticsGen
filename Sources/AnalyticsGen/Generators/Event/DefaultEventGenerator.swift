@@ -9,8 +9,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - Instance Properties
 
-    let configurationProvider: ConfigurationProvider
-    let eventProvider: EventProvider
+    let fileProvider: FileProvider
     let remoteRepoProvider: RemoteRepoProvider
     let templateRenderer: TemplateRenderer
     let dictionaryDecoder: DictionaryDecoder
@@ -18,17 +17,29 @@ final class DefaultEventGenerator: EventGenerator {
     // MARK: - Initializers
 
     init(
-        configurationProvider: ConfigurationProvider,
-        eventProvider: EventProvider,
+        fileProvider: FileProvider,
         remoteRepoProvider: RemoteRepoProvider,
         templateRenderer: TemplateRenderer,
         dictionaryDecoder: DictionaryDecoder
     ) {
-        self.configurationProvider = configurationProvider
-        self.eventProvider = eventProvider
+        self.fileProvider = fileProvider
         self.remoteRepoProvider = remoteRepoProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
+    }
+
+    // MARK: - Instance Methods
+
+    private func fetchGitReference(configuration: Configuration) throws -> Promise<GitReference?> {
+        switch configuration.source {
+        case .local:
+            return .value(.none)
+
+        case .gitHub(let gitHubConfiguration):
+            return remoteRepoProvider
+                .fetchReference(gitHubConfiguration: gitHubConfiguration)
+                .asOptional()
+        }
     }
 
     private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
@@ -38,13 +49,7 @@ final class DefaultEventGenerator: EventGenerator {
 
         case .gitHub(let gitHubConfiguration):
             return remoteRepoProvider
-                .fetchRepo(
-                    owner: gitHubConfiguration.owner,
-                    repo: gitHubConfiguration.repo,
-                    branch: gitHubConfiguration.branch,
-                    username: gitHubConfiguration.username,
-                    token: try gitHubConfiguration.accessToken.resolveToken()
-                )
+                .fetchRepo(gitHubConfiguration: gitHubConfiguration)
                 .map { path in
                     gitHubConfiguration.path.map { path.appendingPathComponent($0) } ?? path
                 }
@@ -52,31 +57,65 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     private func generate(parameters: GenerationParameters, event: Event, schemaURL: URL) throws {
-        let filename = schemaURL.deletingPathExtension().lastPathComponent.camelized.appending(String.filenameSuffix)
-        let context = EventContext(event: event, filename: filename)
+        let filename = schemaURL.deletingPathExtension().lastPathComponent.camelized
+        let screenShownDefaultParameters: [InternalEventParameter.KnownName?] = [.screenName, .hhtmSource, .hhtmFrom]
 
-        if event.internal != nil, event.external == nil {
+        if let internalEvent = event.internal {
+            if internalEvent.knownEventName == .screenShown,
+               internalEvent.parameters.filter({ !screenShownDefaultParameters.contains($0.knownName) }).isEmpty {
+                return
+            }
+
             try templateRenderer.renderTemplate(
                 parameters.render.internalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename).swift"),
-                context: context
+                to: parameters.render.destination.appending(path: "\(filename)Event.swift"),
+                context: InternalEventContext(
+                    name: event.name,
+                    description: event.description,
+                    category: event.category,
+                    eventName: internalEvent.event,
+                    experiment: event.experiment.map {
+                        InternalEventContext.Experiment(description: $0.description, url: $0.url.absoluteString)
+                    },
+                    structName: filename.appending("Event"),
+                    parameters: internalEvent.parameters.nonEmpty?.map { parameter in
+                        InternalEventContext.Parameter(
+                            name: parameter.name,
+                            description: parameter.description,
+                            oneOf: parameter.type.oneOf,
+                            const: parameter.type.const,
+                            type: parameter.type.swiftType
+                        )
+                    }
+                )
             )
-        } else if event.external != nil, event.internal == nil {
+        }
+
+        if let externalEvent = event.external {
             try templateRenderer.renderTemplate(
                 parameters.render.externalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename).swift"),
-                context: context
-            )
-        } else {
-            try templateRenderer.renderTemplate(
-                parameters.render.externalInternalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename).swift"),
-                context: context
+                to: parameters.render.destination.appending(path: "\(filename)ExternalEvent.swift"),
+                context: ExternalEventContext(
+                    name: event.name,
+                    description: event.description,
+                    category: event.category,
+                    structName: filename.appending("ExternalEvent"),
+                    action: ExternalEventContext.Action(
+                        description: externalEvent.action.description,
+                        value: externalEvent.action.value
+                    ),
+                    label: externalEvent.label.map { label in
+                        ExternalEventContext.Label(
+                            description: label.description,
+                            oneOf: label.oneOf
+                        )
+                    }
+                )
             )
         }
     }
 
-    private func generate(configuration: Configuration, schemasPath: URL) throws {
+    private func generate(configuration: Configuration, schemasPath: URL, remoteGitReference: GitReference?) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -84,21 +123,42 @@ final class DefaultEventGenerator: EventGenerator {
         let generarionParameters = try resolveGenerationParameters(from: configuration)
 
         for case let schemaURL as URL in enumerator where schemaURL.pathExtension == .yamlExtension {
-            let event = try eventProvider.fetchEvent(from: schemaURL)
+            Log.info("Fetching schema: \(schemaURL.lastPathComponent)")
+
+            let event: Event = try fileProvider.readFile(at: schemaURL.path)
 
             try generate(parameters: generarionParameters, event: event, schemaURL: schemaURL)
+        }
+
+        if let reference = remoteGitReference {
+            try fileProvider.writeFile(content: reference, at: .lockFilePath)
         }
     }
 
     // MARK: - EventGenerator
 
-    func generate(configurationPath: String) -> Promise<Void> {
+    func generate(configurationPath: String) -> Promise<EventGenerationResult> {
         firstly {
-            configurationProvider.fetchConfiguration(from: configurationPath)
+            fileProvider.readFile(at: configurationPath)
         }.then { configuration in
-            try self.resolveSchemasPath(configuration: configuration).map { (configuration, $0) }
-        }.done { configuration, schemasPath in
-            try self.generate(configuration: configuration, schemasPath: schemasPath)
+            try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
+        }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
+            let lockReference: GitReference? = try self.fileProvider.readFileIfExists(at: .lockFilePath)
+
+            guard lockReference != remoteGitReference else {
+                return .value(.upToDate)
+            }
+
+            return try self
+                .resolveSchemasPath(configuration: configuration)
+                .done {
+                    try self.generate(
+                        configuration: configuration,
+                        schemasPath: $0,
+                        remoteGitReference: remoteGitReference
+                    )
+                }
+                .map { .success }
         }
     }
 }
@@ -115,10 +175,6 @@ extension DefaultEventGenerator: GenerationParametersResolving {
 
     var defaultExternalTemplateType: RenderTemplateType {
         .native(name: "ExternalEvent")
-    }
-
-    var defaultExternalInternalTemplateType: RenderTemplateType {
-        .native(name: "ExternalInternalEvent")
     }
 
     var defaultDestination: RenderDestination {
@@ -149,27 +205,6 @@ private extension String {
 
     // MARK: - Type Properties
 
-    static let filenameSuffix = "Event"
     static let yamlExtension = "yaml"
-}
-
-// MARK: -
-
-private extension AccessTokenConfiguration {
-
-    // MARK: - Instance Methods
-
-    func resolveToken() throws -> String {
-        switch self {
-        case .value(let token):
-            return token
-
-        case .environmentVariable(let environmentVariable):
-            guard let token = ProcessInfo.processInfo.environment[environmentVariable] else {
-                throw MessageError("Environment variable '\(environmentVariable)' not found.")
-            }
-
-            return token
-        }
-    }
+    static let lockFilePath = ".analyticsGen.lock"
 }

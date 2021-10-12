@@ -1,6 +1,6 @@
 import Foundation
 
-struct InternalEventParameter: Codable {
+struct InternalEventParameter: Decodable {
 
     // MARK: - Nested Types
 
@@ -14,12 +14,28 @@ struct InternalEventParameter: Codable {
         case type
     }
 
+    // MARK: -
+
+    enum KnownName: String {
+
+        // MARK: - Enumeration Cases
+
+        case screenName
+        case hhtmSource
+        case hhtmFrom
+    }
+
     // MARK: - Instance Properties
 
     let name: String
     let description: String?
-    let nullable: Bool
     let type: InternalEventParameterType
+
+    // MARK: -
+
+    var knownName: KnownName? {
+        KnownName(rawValue: name)
+    }
 
     // MARK: - Initializers
 
@@ -37,7 +53,6 @@ struct InternalEventParameter: Codable {
 
         self.name = name
         self.description = try container.decodeIfPresent(forKey: .description)
-        self.nullable = try container.decodeIfPresent(forKey: .nullable) ?? false
         self.type = try InternalEventParameterType(from: decoder)
     }
 }

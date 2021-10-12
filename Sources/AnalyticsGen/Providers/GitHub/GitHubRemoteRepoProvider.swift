@@ -9,18 +9,10 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
 
     let httpService: HTTPService
 
-    // MARK: - Instance Methods
+    // MARK: - RemoteRepoProvider
 
-    private func basicAuthValue(username: String, token: String) -> String {
-        let base64Login = String(format: "%@:%@", username, token).data(using: .utf8)!.base64EncodedString()
-
-        return "Basic \(base64Login)"
-    }
-
-    // MARK: -
-
-    func fetchRepo(owner: String, repo: String, branch: String, username: String, token: String) -> Promise<URL> {
-        guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(branch)") else {
+    func fetchRepo(owner: String, repo: String, ref: String, username: String, token: String) -> Promise<URL> {
+        guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(ref)") else {
             return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
         }
 
@@ -31,7 +23,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                         method: .get,
                         url: downloadURL,
                         headers: [
-                            HTTPHeader(name: "Authorization", value: basicAuthValue(username: username, token: token))
+                            .authorization(username: username, password: token)
                         ]
                     )
                 )
@@ -62,6 +54,38 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                         seal.reject(error)
                     }
             }
+        }
+    }
+
+    func fetchReference(
+        owner: String,
+        repo: String,
+        ref: String,
+        username: String,
+        token: String
+    ) -> Promise<GitReference> {
+        guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/git/ref/\(ref)") else {
+            return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
+        }
+
+        return Promise { seal in
+            httpService
+                .request(
+                    route: HTTPRoute(
+                        method: .get,
+                        url: url,
+                        headers: [.authorization(username: username, password: token)]
+                    )
+                )
+                .responseDecodable(type: GitReference.self) { httpResponse in
+                    switch httpResponse.result {
+                    case .success(let reference):
+                        seal.fulfill(reference)
+
+                    case .failure(let error):
+                        seal.reject(error)
+                    }
+                }
         }
     }
 }

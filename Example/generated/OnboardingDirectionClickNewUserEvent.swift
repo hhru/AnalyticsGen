@@ -3,20 +3,29 @@
 
 import Analytics
 
-/// **Название**: Новый пользователь на экране "Развилка"
-/// **Описание**: Пользователь кликнул на "Я новый"
-/// **Категория**: Онбоардинг
-struct OnboardingDirectionClickNewUserEvent: InternalAnalyticsEvent, SlashAnalyticsEvent, UserCategoryEvent {
+/**
+ Новый пользователь на экране "Развилка"
 
-    enum Label: String {
-        /// --
-        case success
+ - **Описание**: Пользователь кликнул на "Я новый"
+ - **Категория**: Онбоардинг
+ */
+public struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+
+    public enum CodingKeys: String, CodingKey {
+        case hhtmSource
+        case hhtmFrom
     }
 
-    let eventName = "onboardingNewUserClick"
-    let action = "onboarding-direction-click-new-user"
+    public let eventName = "onboardingNewUserClick"
 
-    let label: Label = .success
-    let isLoggedIn: Bool
+    public let hhtmSource: HHTMSource?
+    public let hhtmFrom: HHTMFrom?
 
+    public init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+    }
 }

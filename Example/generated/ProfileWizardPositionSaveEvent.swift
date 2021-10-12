@@ -3,17 +3,22 @@
 
 import Analytics
 
-/// **Название**: Пользователь выбрал должность
-/// **Описание**: Пользователь выбрал должность, он мог сделать это как в форме через накликивание (`type == tag`) В форме подсказки должности либо выбрать подходящий вариант (`type == suggest`) или же ввести что-то свое руками (`type == manual`)
-/// **Категория**: Профиль-резюме
-struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+/**
+ Пользователь выбрал должность
 
-    enum ParameterKeys: String {
+ - **Описание**: Пользователь выбрал должность, он мог сделать это как в форме через накликивание (`type == tag`) В форме подсказки должности либо выбрать подходящий вариант (`type == suggest`) или же ввести что-то свое руками (`type == manual`)
+ - **Категория**: Профиль-резюме
+ */
+public struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+
+    public enum CodingKeys: String, CodingKey {
         case buttonName = "buttonName"
         case type = "type"
+        case hhtmSource
+        case hhtmFrom
     }
 
-    enum `Type`: String {
+    public enum `Type`: String, Encodable {
         /// экран накликивания
         case tag = "tag"
 
@@ -24,18 +29,24 @@ struct ProfileWizardPositionSaveEvent: ParametrizedInternalAnalyticsEvent, Slash
         case manual = "manual"
     }
 
-    let eventName = "button_click"
+    public let eventName = "button_click"
+
+    public let hhtmSource: HHTMSource?
+    public let hhtmFrom: HHTMFrom?
 
     /// Пользователь выбрал должность
-    let buttonName = "profile_wizard_position_save"
+    public let buttonName = "profile_wizard_position_save"
 
     /// Тип экрана выбора должности
-    let type: `Type`
+    public let type: `Type`
 
-    var parameters: [ParameterKeys: Any?] {
-        [
-            .buttonName: buttonName,
-            .type: type.rawValue
-        ]
+    public init(
+        hhtmSource: HHTMSource?, 
+        hhtmFrom: HHTMFrom,
+        type: `Type`
+    ) {
+        self.hhtmSource = hhtmSource
+        self.hhtmFrom = hhtmFrom
+        self.type = type
     }
 }

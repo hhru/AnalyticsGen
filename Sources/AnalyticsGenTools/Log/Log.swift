@@ -60,7 +60,7 @@ public enum Log {
     ) {
         printers.forEach {
             $0.print(
-                success: line(layer: .fail, text: text(), sender: sender(), date: date())
+                fail: line(layer: .fail, text: text(), sender: sender(), date: date())
             )
         }
     }
@@ -72,7 +72,7 @@ public enum Log {
     ) {
         printers.forEach {
             $0.print(
-                success: line(layer: .info, text: text(), sender: sender(), date: date())
+                info: line(layer: .info, text: text(), sender: sender(), date: date())
             )
         }
     }

@@ -33,8 +33,14 @@ final class GenerateCommand: AsyncExecutableCommand {
 
         firstly {
             generator.generate(configurationPath: configurationPath)
-        }.done {
-            self.succeed(message: "Generation completed successfully!")
+        }.done { result in
+            switch result {
+            case .success:
+                self.succeed(message: "Generation completed successfully!")
+
+            case .upToDate:
+                self.succeed(message: "Analytic events is up to date!")
+            }
         }.catch { error in
             self.fail(message: "Failed to generate with error: \(error)")
         }

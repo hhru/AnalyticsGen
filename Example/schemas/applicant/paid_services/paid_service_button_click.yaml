@@ -1,0 +1,26 @@
+name: Нажатие на платный сервис
+description: Пользователь нажал на платный сервис
+category: Соискательские сервисы
+application: applicant
+platform: Android/iOS
+
+external:
+  category: anonymous/applicant
+  action:
+    type: string
+    description: Строится как buy-{service_id}-attempt
+  label:
+    oneOf:
+      - name: service-list
+        description: Список платных услуг
+
+internal:
+  event: button_click
+  buttonName:
+    type: string
+    description: Строится как applicant_services_{serviceID}
+  hhtmSource:
+    type: string
+    description: Экран, на котором была нажата кнопка
+  hhtmFrom:
+    type: string

@@ -1,10 +1,10 @@
 import Foundation
 
-struct EventExperiment: Codable {
+struct EventExperiment: Decodable {
 
     // MARK: - Instance Properties
 
     let description: String
     let name: String?
-    let url: String
+    let url: URL
 }

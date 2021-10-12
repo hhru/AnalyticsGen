@@ -1,9 +1,9 @@
 import Foundation
 
-struct OneOf: Codable {
+struct ExternalEventProperty: Decodable {
 
     // MARK: - Instance Properties
 
-    let name: String
+    let type: String
     let description: String?
 }

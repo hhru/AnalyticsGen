@@ -1,6 +1,6 @@
 import Foundation
 
-struct Event: Codable {
+struct Event: Decodable {
 
     // MARK: - Instance Properties
 

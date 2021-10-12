@@ -1,3 +1,9 @@
-specification: "/Users/t.shafigullin/Desktop/Swift/AnalyticsGen/Example/specification/specification.yaml"
-source: "schemas"
-destination: "generated"
+source: schemas-test
+destination: generated
+template:
+  internal:
+    options:
+      publicAccess: true
+  external:
+    options:
+      publicAccess: true

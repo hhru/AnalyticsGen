@@ -6,6 +6,5 @@ struct RenderParameters {
 
     let internalTemplate: RenderTemplate
     let externalTemplate: RenderTemplate
-    let externalInternalTemplate: RenderTemplate
     let destination: RenderDestination
 }
