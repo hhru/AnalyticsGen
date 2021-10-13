@@ -47,13 +47,13 @@ import SharedServices
     {{ accessModifier }} var action: String {
         oneOfAction.rawValue
     }
-    {% elif action.type %}
+    {% elif action.value %}
+    {{ accessModifier }} let action = "{{ action.value }}"
+    {% else %}
         {% if action.description %}
     /// {{ action.description }}
         {% endif %}
     {{ accessModifier }} let action: String
-    {% elif action.value %}
-    {{ accessModifier }} let action = "{{ action.value }}"
     {% endif %}
 
     {% if label %}
