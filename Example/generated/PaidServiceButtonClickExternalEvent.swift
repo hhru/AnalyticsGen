@@ -17,6 +17,9 @@ public struct PaidServiceButtonClickExternalEvent: UserCategoryEvent {
         case serviceList
     }
 
+    /// Строится как buy-{service_id}-attempt
+    public let action: String
+
     public let oneOfLabel: Label
 
     public var label: String {
@@ -26,9 +29,11 @@ public struct PaidServiceButtonClickExternalEvent: UserCategoryEvent {
     public let isLoggedIn: Bool
 
     public init(
+        action: String,
         label: Label,
         isLoggedIn: Bool
     ) {
+        self.action = action
         self.oneOfLabel = label
         self.isLoggedIn = isLoggedIn
     }

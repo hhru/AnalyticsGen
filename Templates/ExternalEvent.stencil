@@ -76,7 +76,7 @@ import SharedServices
     {{ accessModifier }} init(
         {% if action.oneOf %}
         action: Action,
-        {% elif action.type %}
+        {% elif not action.value %}
         action: String,
         {% endif %}
         {% if label.oneOf %}
@@ -88,7 +88,7 @@ import SharedServices
     ) {
         {% if action.oneOf %}
         self.oneOfAction = action
-        {% elif action.type %}
+        {% elif not action.value %}
         self.action = action
         {% endif %}
         {% if label.oneOf%}
