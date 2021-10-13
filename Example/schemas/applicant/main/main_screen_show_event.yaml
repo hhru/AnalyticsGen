@@ -1,0 +1,35 @@
+---
+name: Открытие главного экрана и изменение карточек
+description: У пользователя обновились карточки на главном экране
+category: Главный экран
+application: applicant
+
+internal:
+  event: screen_shown
+  hhtmSource:
+    const: main
+    description: У пользователя обновились карточки на главном экране
+  screenName:
+    const: main
+    description: У пользователя обновились карточки на главном экране
+  actionCardList:
+    description: Могут быть еще
+    oneOf:
+      - name: work_nearby,resume_update_grey,side_job,advice_article
+        description: Комбинация с карточкой обновления резюме, когда обновление недоступно
+      - name: work_nearby,resume_update_green,side_job,advice_article
+        description: Комбинация с карточкой обновления резюме, когда обновление доступно
+      - name: resume_complete,work_nearby,side_job,advice_article
+        description: Комбинация с карточкой получить больше просмотров
+      - name: resume_creation,work_nearby,side_job,advice_article
+        description: Комбинация с "Создать первое резюме"
+      - name: resume_publication,work_nearby,side_job,advice_article
+        description: Комбинация с "Шаги до готового резюме"
+      - name: resume_correction,work_nearby,side_job,advice_article
+        description: Комбинация с "Блокировка резюме"
+      - name: first_response,work_nearby,side_job,advice_article
+        description: Комбинация с "Получить свое первое приглашение"
+      - name: response_count,work_nearby,side_job,advice_article
+        description: Комбинация с "Откликнитесь еще на N вакансий"
+      - name: last_search,work_nearby,side_job,advice_article
+        description: Комбинация с карточкой последнего поиска

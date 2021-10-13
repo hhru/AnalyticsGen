@@ -46,9 +46,9 @@ import Analytics
 
     {% for parameter in parameters %}
         {% if parameter.description %}
-            {% if parameter.description|contains:"\n" %}
+            {% if parameter.description|isMultiline %}
     /**
-    {{ parameter.description }}
+    {{ parameter.description|multilineAlignment }}
     */
             {% else %}
     /// {{ parameter.description }}

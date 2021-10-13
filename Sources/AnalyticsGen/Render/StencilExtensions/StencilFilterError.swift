@@ -1,6 +1,6 @@
 import Foundation
 
-struct StencilModificatorError: Error, CustomStringConvertible {
+struct StencilFilterError: Error, CustomStringConvertible {
 
     // MARK: - Nested Types
 

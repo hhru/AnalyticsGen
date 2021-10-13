@@ -1,12 +1,12 @@
 import Foundation
 
-final class StencilStringWordModificator: StencilStringModificator {
+final class StencilStringUpperWordFilter: StencilStringFilter {
 
     // MARK: - Nested Types
 
     typealias Input = String
     typealias Output = String
-    typealias StringModificatorOuput = String
+    typealias StringFilterOutput = String
 
     // MARK: - Instance Properties
 
@@ -14,7 +14,7 @@ final class StencilStringWordModificator: StencilStringModificator {
 
     // MARK: - Instance Methods
 
-    func modify(string: String, withArguments arguments: [Any?]) throws -> String {
+    func filter(string: String, withArguments arguments: [Any?]) throws -> String {
         guard let word = arguments.first as? String else {
             return string
         }
