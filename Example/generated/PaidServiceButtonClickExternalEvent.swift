@@ -5,19 +5,17 @@ import Analytics
 import SharedServices
 
 /**
- Новый пользователь на экране "Развилка"
+ Нажатие на платный сервис
 
- - **Описание**: Пользователь кликнул на "Я новый"
- - **Категория**: Онбоардинг
+ - **Описание**: Пользователь нажал на платный сервис
+ - **Категория**: Соискательские сервисы
  */
-public struct OnboardingDirectionClickNewUserExternalEvent: UserCategoryEvent {
+public struct PaidServiceButtonClickExternalEvent: UserCategoryEvent {
 
     public enum Label: String {
-        /// --
-        case success
+        /// Список платных услуг
+        case serviceList
     }
-
-    public let action = "onboarding-direction-click-new-user"
 
     public let oneOfLabel: Label
 

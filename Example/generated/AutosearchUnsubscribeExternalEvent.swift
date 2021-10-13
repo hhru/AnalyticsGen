@@ -2,6 +2,7 @@
 // Generated using AnalyticsGen
 
 import Analytics
+import SharedServices
 
 /**
  Отписка от автопоиска

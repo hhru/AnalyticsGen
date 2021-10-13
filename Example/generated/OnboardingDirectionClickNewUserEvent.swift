@@ -19,11 +19,11 @@ public struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalytic
     public let eventName = "onboardingNewUserClick"
 
     public let hhtmSource: HHTMSource?
-    public let hhtmFrom: HHTMFrom?
+    public let hhtmFrom: HHTMSource?
 
     public init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMFrom
+        hhtmFrom: HHTMSource?
     ) {
         self.hhtmSource = hhtmSource
         self.hhtmFrom = hhtmFrom

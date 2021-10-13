@@ -56,11 +56,26 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(parameters: GenerationParameters, event: Event, schemaURL: URL) throws {
-        let filename = schemaURL.deletingPathExtension().lastPathComponent.camelized
+    private func clearDestinationFolder(at path: String) throws {
+        let fileManager = FileManager.default
+
+        try fileManager.contentsOfDirectory(atPath: path).forEach { filename in
+            if filename.hasSuffix(".swift") {
+                try fileManager.removeItem(atPath: path + "/" + filename)
+            }
+        }
+    }
+
+    private func generate(
+        parameters: GenerationParameters,
+        event: Event,
+        schemaURL: URL,
+        platform: EventPlatform
+    ) throws {
+        let filename = schemaURL.deletingPathExtension().lastPathComponent.deletingSuffix("event").camelized
         let screenShownDefaultParameters: [InternalEventParameter.KnownName?] = [.screenName, .hhtmSource, .hhtmFrom]
 
-        if let internalEvent = event.internal {
+        if let internalEvent = event.internal, (internalEvent.platform ?? .androidIOS) == platform {
             if internalEvent.knownEventName == .screenShown,
                internalEvent.parameters.filter({ !screenShownDefaultParameters.contains($0.knownName) }).isEmpty {
                 return
@@ -86,12 +101,16 @@ final class DefaultEventGenerator: EventGenerator {
                             const: parameter.type.const,
                             type: parameter.type.swiftType
                         )
-                    }
+                    },
+                    hasParametersToInit: !internalEvent
+                        .parameters
+                        .filter { !$0.type.oneOf.isNil || !$0.type.swiftType.isNil }
+                        .isEmpty
                 )
             )
         }
 
-        if let externalEvent = event.external {
+        if let externalEvent = event.external, (externalEvent.platform ?? .androidIOS) == platform {
             try templateRenderer.renderTemplate(
                 parameters.render.externalTemplate,
                 to: parameters.render.destination.appending(path: "\(filename)ExternalEvent.swift"),
@@ -102,7 +121,8 @@ final class DefaultEventGenerator: EventGenerator {
                     structName: filename.appending("ExternalEvent"),
                     action: ExternalEventContext.Action(
                         description: externalEvent.action.description,
-                        value: externalEvent.action.value
+                        value: externalEvent.action.value,
+                        oneOf: externalEvent.action.oneOf
                     ),
                     label: externalEvent.label.map { label in
                         ExternalEventContext.Label(
@@ -121,13 +141,24 @@ final class DefaultEventGenerator: EventGenerator {
         }
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
+        let platform = configuration.platform ?? .androidIOS
 
-        for case let schemaURL as URL in enumerator where schemaURL.pathExtension == .yamlExtension {
-            Log.info("Fetching schema: \(schemaURL.lastPathComponent)")
+        let events: [(Event, URL)] = try enumerator
+            .lazy
+            .compactMap { $0 as? URL }
+            .filter { $0.pathExtension == .yamlExtension }
+            .map { url in
+                Log.info("Fetching schema: \(url.lastPathComponent)")
 
-            let event: Event = try fileProvider.readFile(at: schemaURL.path)
+                let event: Event = try fileProvider.readFile(at: url.path)
 
-            try generate(parameters: generarionParameters, event: event, schemaURL: schemaURL)
+                return (event, url)
+            }
+
+        try clearDestinationFolder(at: configuration.destination ?? "./")
+
+        try events.forEach { event, url in
+            try generate(parameters: generarionParameters, event: event, schemaURL: url, platform: platform)
         }
 
         if let reference = remoteGitReference {
@@ -143,10 +174,11 @@ final class DefaultEventGenerator: EventGenerator {
         }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
-            let lockReference: GitReference? = try self.fileProvider.readFileIfExists(at: .lockFilePath)
-
-            guard lockReference != remoteGitReference else {
-                return .value(.upToDate)
+            if let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
+               let remoteGitReference = remoteGitReference {
+                if lockReference == remoteGitReference {
+                    return .value(.upToDate)
+                }
             }
 
             return try self

@@ -46,7 +46,13 @@ import Analytics
 
     {% for parameter in parameters %}
         {% if parameter.description %}
+            {% if parameter.description|contains:"\n" %}
+    /**
+    {{ parameter.description }}
+    */
+            {% else %}
     /// {{ parameter.description }}
+            {% endif %}
         {% endif %}
         {% if parameter.const %}
     {{ accessModifier }} let {% call propertyName parameter.name %} = "{{ parameter.const }}"
@@ -60,8 +66,8 @@ import Analytics
 
     {{ accessModifier }} init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMSource?{% if parameters %},{% endif %}
-        {% for parameter in parameters %}
+        hhtmFrom: HHTMSource?{% if hasParametersToInit %},{% endif %}
+        {% for parameter in parameters where parameter.type or parameter.oneOf %}
             {% if parameter.type %}
         {% call propertyName parameter.name %}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
             {% elif parameter.oneOf %}

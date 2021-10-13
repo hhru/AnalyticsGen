@@ -2,6 +2,7 @@
 // Generated using AnalyticsGen
 
 import Analytics
+import SharedServices
 
 /**
  Открытие уведомления

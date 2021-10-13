@@ -25,4 +25,12 @@ extension String {
             .map { $0.firstUppercased }
             .joined()
     }
+
+    public func deletingSuffix(_ suffix: String) -> String {
+        guard hasSuffix(suffix) else {
+            return self
+        }
+
+        return String(dropLast(suffix.count))
+    }
 }

@@ -21,7 +21,7 @@ public struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAn
     public let eventName = "button_click"
 
     public let hhtmSource: HHTMSource?
-    public let hhtmFrom: HHTMFrom?
+    public let hhtmFrom: HHTMSource?
 
     /// Какая-либо кнопка написания в поддержку
     public let buttonName = "open_support_chat"
@@ -31,7 +31,7 @@ public struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAn
 
     public init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMFrom,
+        hhtmFrom: HHTMSource?,
         employerID: String?
     ) {
         self.hhtmSource = hhtmSource

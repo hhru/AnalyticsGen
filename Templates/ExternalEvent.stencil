@@ -5,6 +5,7 @@
 {% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
 
 import Analytics
+import SharedServices
 
 /**
  {{ name }}
@@ -26,7 +27,27 @@ import Analytics
     }
     {% endif %}
 
-    {% if action.type %}
+    {% if action.oneOf %}
+    {{ accessModifier }} enum Action: String {
+        {% for oneOf in action.oneOf %}
+            {% if oneOf.description %}
+        /// {{ oneOf.description }}
+            {% endif %}
+        case {% call propertyName oneOf.name %}
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+
+    {% if action.oneOf %}
+    {{ accessModifier }} let oneOfAction: Action
+
+    {{ accessModifier }} var action: String {
+        oneOfAction.rawValue
+    }
+    {% elif action.type %}
         {% if action.description %}
     /// {{ action.description }}
         {% endif %}
@@ -53,7 +74,9 @@ import Analytics
     {{ accessModifier }} let isLoggedIn: Bool
 
     {{ accessModifier }} init(
-        {% if action.type %}
+        {% if action.oneOf %}
+        action: Action,
+        {% elif action.type %}
         action: String,
         {% endif %}
         {% if label.oneOf %}
@@ -63,7 +86,9 @@ import Analytics
         {% endif %}
         isLoggedIn: Bool
     ) {
-        {% if action.type %}
+        {% if action.oneOf %}
+        self.oneOfAction = action
+        {% elif action.type %}
         self.action = action
         {% endif %}
         {% if label.oneOf%}
