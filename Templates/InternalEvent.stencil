@@ -1,6 +1,6 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|upperWord:"id" }}{% endmacro %}
-{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
+{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|replace:"`Type`","EventType"|upperWord:"hhtm" }}{% endmacro %}
 
 {% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
 
@@ -37,11 +37,16 @@ import Analytics
         {% endif %}
         {% endfor %}
     }
+
     {% endfor %}
 
+    /// Название события
     {{ accessModifier }} let eventName = "{{ eventName }}"
 
+    /// С какого экрана событие будет отправлено
     {{ accessModifier }} let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     {{ accessModifier }} let hhtmFrom: HHTMSource?
 
     {% for parameter in parameters %}

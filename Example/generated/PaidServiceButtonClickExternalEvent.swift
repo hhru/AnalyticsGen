@@ -2,7 +2,6 @@
 // Generated using AnalyticsGen
 
 import Analytics
-import SharedServices
 
 /**
  Нажатие на платный сервис

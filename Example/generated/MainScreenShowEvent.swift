@@ -47,9 +47,13 @@ public struct MainScreenShowEvent: ParametrizedInternalAnalyticsEvent, SlashAnal
         case lastSearchWorkNearbySIDeJobAdviceArticle = "last_search,work_nearby,side_job,advice_article"
     }
 
+    /// Название события
     public let eventName = "screen_shown"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     /// У пользователя обновились карточки на главном экране

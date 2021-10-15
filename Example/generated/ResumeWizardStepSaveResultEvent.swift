@@ -14,12 +14,13 @@ public struct ResumeWizardStepSaveResultEvent: ParametrizedInternalAnalyticsEven
     public enum CodingKeys: String, CodingKey {
         case resumeHash = "resumeHash"
         case type = "type"
+        case screenType = "screenType"
         case errors = "errors"
         case hhtmSource
         case hhtmFrom
     }
 
-    public enum `Type`: String, Encodable {
+    public enum EventType: String, Encodable {
         /// Визард для дозаполнения резюме
         case completion = "completion"
 
@@ -33,16 +34,28 @@ public struct ResumeWizardStepSaveResultEvent: ParametrizedInternalAnalyticsEven
         case duplication = "duplication"
     }
 
+    public enum ScreenType: String, Encodable {
+        case profile = "profile"
+
+        case resumeList = "resume_list"
+    }
+
+    /// Название события
     public let eventName = "resume_wizard_step_save_result"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     /// Идентификатор резюме
     public let resumeHash: String
 
     /// Тип визарда
-    public let type: `Type`
+    public let type: EventType
+
+    public let screenType: ScreenType
 
     /**
     Список ошибок валидации на текущем шаге визарда в виде JSON-строки,
@@ -65,13 +78,15 @@ public struct ResumeWizardStepSaveResultEvent: ParametrizedInternalAnalyticsEven
         hhtmSource: HHTMSource?, 
         hhtmFrom: HHTMSource?,
         resumeHash: String,
-        type: `Type`,
+        type: EventType,
+        screenType: ScreenType,
         errors: String
     ) {
         self.hhtmSource = hhtmSource
         self.hhtmFrom = hhtmFrom
         self.resumeHash = resumeHash
         self.type = type
+        self.screenType = screenType
         self.errors = errors
     }
 }

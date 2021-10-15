@@ -18,9 +18,13 @@ public struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAn
         case hhtmFrom
     }
 
+    /// Название события
     public let eventName = "button_click"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     /// Какая-либо кнопка написания в поддержку

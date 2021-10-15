@@ -17,9 +17,13 @@ public struct PaidServiceButtonClickEvent: ParametrizedInternalAnalyticsEvent, S
         case hhtmFrom
     }
 
+    /// Название события
     public let eventName = "button_click"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     /// Строится как applicant_services_{serviceID}

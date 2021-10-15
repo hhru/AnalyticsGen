@@ -16,9 +16,13 @@ public struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnal
         case hhtmFrom
     }
 
+    /// Название события
     public let eventName = "button_click"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     public init(

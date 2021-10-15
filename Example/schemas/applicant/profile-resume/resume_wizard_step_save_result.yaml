@@ -58,6 +58,11 @@ internal:
       - name: duplication
         description: Визард для дублирования резюме
 
+  screenType:
+    oneOf:
+      - name: profile
+      - name: resume_list
+
   errors:
     description: |
       Список ошибок валидации на текущем шаге визарда в виде JSON-строки,

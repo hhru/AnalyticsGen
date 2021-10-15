@@ -16,9 +16,13 @@ public struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalytic
         case hhtmFrom
     }
 
+    /// Название события
     public let eventName = "onboardingNewUserClick"
 
+    /// С какого экрана событие будет отправлено
     public let hhtmSource: HHTMSource?
+
+    /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
     public init(
