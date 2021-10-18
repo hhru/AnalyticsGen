@@ -183,17 +183,17 @@ final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - EventGenerator
 
-    func generate(configurationPath: String) -> Promise<EventGenerationResult> {
+    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
             fileProvider.readFile(at: configurationPath)
         }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
             if let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
-               let remoteGitReference = remoteGitReference {
-                if lockReference == remoteGitReference {
-                    return .value(.upToDate)
-                }
+               let remoteGitReference = remoteGitReference,
+               lockReference == remoteGitReference,
+               !force {
+                return .value(.upToDate)
             }
 
             return try self

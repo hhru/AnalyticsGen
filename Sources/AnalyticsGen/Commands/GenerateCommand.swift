@@ -18,6 +18,14 @@ final class GenerateCommand: AsyncExecutableCommand {
             """
     )
 
+    let force = Flag(
+        "--force",
+        description: """
+            Regenerate all analytics events ignoring last commit in lock file.
+            By default, generation will perform only if has new commits.
+            """
+    )
+
     let generator: EventGenerator
 
     // MARK: - Initializers
@@ -32,7 +40,7 @@ final class GenerateCommand: AsyncExecutableCommand {
         let configurationPath = self.configurationPath.value ?? .defaultConfigurationPath
 
         firstly {
-            generator.generate(configurationPath: configurationPath)
+            generator.generate(configurationPath: configurationPath, force: force.value)
         }.done { result in
             switch result {
             case .success:
