@@ -66,6 +66,27 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
+    private func shouldGenerateInternalEvent(_ event: InternalEvent, platform: EventPlatform) -> Bool {
+        let eventPlatform = event.platform ?? .androidIOS
+        let screenShownDefaultParameters: [InternalEventParameter.KnownName?] = [.screenName, .hhtmSource, .hhtmFrom]
+        let isScreenShownEvent = event.knownEventName == .screenShown
+
+        let hasOnlyDefaultScreenShownParameters = event
+            .parameters
+            .filter({ !screenShownDefaultParameters.contains($0.knownName) })
+            .isEmpty
+
+        guard eventPlatform == platform else {
+            return false
+        }
+
+        if isScreenShownEvent && hasOnlyDefaultScreenShownParameters {
+            return false
+        } else {
+            return true
+        }
+    }
+
     private func generate(
         parameters: GenerationParameters,
         event: Event,
@@ -73,14 +94,8 @@ final class DefaultEventGenerator: EventGenerator {
         platform: EventPlatform
     ) throws {
         let filename = schemaURL.deletingPathExtension().lastPathComponent.deletingSuffix("event").camelized
-        let screenShownDefaultParameters: [InternalEventParameter.KnownName?] = [.screenName, .hhtmSource, .hhtmFrom]
 
-        if let internalEvent = event.internal, (internalEvent.platform ?? .androidIOS) == platform {
-            if internalEvent.knownEventName == .screenShown,
-               internalEvent.parameters.filter({ !screenShownDefaultParameters.contains($0.knownName) }).isEmpty {
-                return
-            }
-
+        if let internalEvent = event.internal, shouldGenerateInternalEvent(internalEvent, platform: platform) {
             try templateRenderer.renderTemplate(
                 parameters.render.internalTemplate,
                 to: parameters.render.destination.appending(path: "\(filename)Event.swift"),
