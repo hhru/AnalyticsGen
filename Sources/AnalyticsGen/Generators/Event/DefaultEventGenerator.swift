@@ -42,6 +42,30 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
+    private func shouldPerformGeneration(
+        force: Bool,
+        destinationPath: String,
+        remoteGitReference: GitReference?
+    ) throws -> Bool {
+        guard !force else {
+            return true
+        }
+
+        let hasGeneratedFiles = try !FileManager
+            .default
+            .contentsOfDirectory(atPath: destinationPath)
+            .filter { $0.lowercased().hasSuffix(.swiftExtension) }
+            .isEmpty
+
+        guard hasGeneratedFiles,
+              let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
+              let remoteGitReference = remoteGitReference else {
+            return true
+        }
+
+        return lockReference != remoteGitReference
+    }
+
     private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
         switch configuration.source {
         case .local(let path):
@@ -60,7 +84,7 @@ final class DefaultEventGenerator: EventGenerator {
         let fileManager = FileManager.default
 
         try fileManager.contentsOfDirectory(atPath: path).forEach { filename in
-            if filename.hasSuffix(".swift") {
+            if filename.hasSuffix(.swiftExtension) {
                 try fileManager.removeItem(atPath: path + "/" + filename)
             }
         }
@@ -189,10 +213,11 @@ final class DefaultEventGenerator: EventGenerator {
         }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
-            if let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
-               let remoteGitReference = remoteGitReference,
-               lockReference == remoteGitReference,
-               !force {
+            guard try self.shouldPerformGeneration(
+                force: force,
+                destinationPath: configuration.destination ?? "./",
+                remoteGitReference: remoteGitReference
+            ) else {
                 return .value(.upToDate)
             }
 
@@ -253,5 +278,6 @@ private extension String {
     // MARK: - Type Properties
 
     static let yamlExtension = "yaml"
+    static let swiftExtension = ".swift"
     static let lockFilePath = ".analyticsGen.lock"
 }
