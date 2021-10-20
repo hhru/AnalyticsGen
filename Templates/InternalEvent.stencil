@@ -1,6 +1,6 @@
 {% include "FileHeader.stencil" %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|upperWord:"id" }}{% endmacro %}
-{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|upperWord:"hhtm" }}{% endmacro %}
+{% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|replace:"`Type`","EventType"|upperWord:"hhtm" }}{% endmacro %}
 
 {% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
 
@@ -37,16 +37,27 @@ import Analytics
         {% endif %}
         {% endfor %}
     }
+
     {% endfor %}
 
+    /// Название события
     {{ accessModifier }} let eventName = "{{ eventName }}"
 
+    /// С какого экрана событие будет отправлено
     {{ accessModifier }} let hhtmSource: HHTMSource?
-    {{ accessModifier }} let hhtmFrom: HHTMFrom?
+
+    /// Предыдущий экран
+    {{ accessModifier }} let hhtmFrom: HHTMSource?
 
     {% for parameter in parameters %}
         {% if parameter.description %}
+            {% if parameter.description|isMultiline %}
+    /**
+    {{ parameter.description|multilineAlignment }}
+    */
+            {% else %}
     /// {{ parameter.description }}
+            {% endif %}
         {% endif %}
         {% if parameter.const %}
     {{ accessModifier }} let {% call propertyName parameter.name %} = "{{ parameter.const }}"
@@ -60,8 +71,8 @@ import Analytics
 
     {{ accessModifier }} init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMFrom{% if parameters %},{% endif %}
-        {% for parameter in parameters %}
+        hhtmFrom: HHTMSource?{% if hasParametersToInit %},{% endif %}
+        {% for parameter in parameters where parameter.type or parameter.oneOf %}
             {% if parameter.type %}
         {% call propertyName parameter.name %}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
             {% elif parameter.oneOf %}

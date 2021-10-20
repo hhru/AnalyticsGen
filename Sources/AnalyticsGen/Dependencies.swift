@@ -14,7 +14,9 @@ enum Dependencies {
     static let templateContextCoder: TemplateContextCoder = DefaultTemplateContextCoder()
 
     static let stencilExtensions: [StencilExtension] = [
-        StencilStringWordModificator()
+        StencilStringUpperWordFilter(),
+        StencilStringMultilineFilter(),
+        StencilStringMultilineAlignmentFilter()
     ]
 
     static let templateRenderer: TemplateRenderer = DefaultTemplateRenderer(

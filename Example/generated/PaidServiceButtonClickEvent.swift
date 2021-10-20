@@ -4,14 +4,15 @@
 import Analytics
 
 /**
- Нажатие на кнопку "Подтвердить номер" (баннер на профиле)
+ Нажатие на платный сервис
 
- - **Описание**: Нажатие на кнопку "Подтвердить номер" в баннере на экране профиля. Для опубликованных резюме.
- - **Категория**: Профиль-резюме
+ - **Описание**: Пользователь нажал на платный сервис
+ - **Категория**: Соискательские сервисы
  */
-public struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct PaidServiceButtonClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
 
     public enum CodingKeys: String, CodingKey {
+        case buttonName = "buttonName"
         case hhtmSource
         case hhtmFrom
     }
@@ -25,11 +26,16 @@ public struct ProfilePhoneVerificationBannerClickEvent: ParametrizedInternalAnal
     /// Предыдущий экран
     public let hhtmFrom: HHTMSource?
 
+    /// Строится как applicant_services_{serviceID}
+    public let buttonName: String
+
     public init(
         hhtmSource: HHTMSource?, 
-        hhtmFrom: HHTMSource?
+        hhtmFrom: HHTMSource?,
+        buttonName: String
     ) {
         self.hhtmSource = hhtmSource
         self.hhtmFrom = hhtmFrom
+        self.buttonName = buttonName
     }
 }

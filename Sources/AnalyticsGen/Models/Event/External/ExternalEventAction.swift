@@ -2,18 +2,32 @@ import Foundation
 
 enum ExternalEventAction: Decodable {
 
+    // MARK: - Nested Types
+
+    enum CodingKeys: String, CodingKey {
+
+        // MARK: - Enumeration Cases
+
+        case oneOf
+    }
+
     // MARK: - Enumeration Cases
 
     case string(String)
     case property(ExternalEventProperty)
+    case oneOf([OneOf])
 
     // MARK: - Initializers
 
     init(from decoder: Decoder) throws {
         if let string = try? String(from: decoder) {
             self = .string(string)
+        } else if let property = try? ExternalEventProperty(from: decoder) {
+            self = .property(property)
         } else {
-            self = .property(try ExternalEventProperty(from: decoder))
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            self = .oneOf(try container.decode(forKey: .oneOf))
         }
     }
 }
@@ -29,7 +43,7 @@ extension ExternalEventAction {
         case .property(let property):
             return property.description
 
-        case .string:
+        case .string, .oneOf:
             return nil
         }
     }
@@ -39,7 +53,17 @@ extension ExternalEventAction {
         case .string(let value):
             return value
 
-        case .property:
+        case .property, .oneOf:
+            return nil
+        }
+    }
+
+    var oneOf: [OneOf]? {
+        switch self {
+        case .oneOf(let array):
+            return array
+
+        case .property, .string:
             return nil
         }
     }

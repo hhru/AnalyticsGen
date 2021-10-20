@@ -1,7 +1,7 @@
 import Foundation
 import AnalyticsGenTools
 
-protocol StencilModificator: StencilExtension {
+protocol StencilFilter: StencilExtension {
 
     // MARK: - Nested Types
 
@@ -10,20 +10,22 @@ protocol StencilModificator: StencilExtension {
 
     // MARK: - Instance Methods
 
-    func modify(input: Input, withArguments arguments: [Any?]) throws -> Output
+    func filter(input: Input, withArguments arguments: [Any?]) throws -> Output
 }
 
-extension StencilModificator {
+// MARK: -
+
+extension StencilFilter {
 
     // MARK: - Instance Methods
 
     func register(in extensionRegistry: ExtensionRegistry) {
         extensionRegistry.registerFilter(name) { value, parameters in
             guard let input = value as? Input else {
-                throw StencilModificatorError(code: .invalidValue(value), filter: name)
+                throw StencilFilterError(code: .invalidValue(value), filter: name)
             }
 
-            return try self.modify(input: input, withArguments: parameters)
+            return try self.filter(input: input, withArguments: parameters)
         }
     }
 }

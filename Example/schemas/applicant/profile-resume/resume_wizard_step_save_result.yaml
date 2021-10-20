@@ -1,0 +1,82 @@
+
+---
+name: Нажатие на кнопку "Сохранить" на текущем шаге визарда
+description: Пользователь заполнил текущий шаг визарда и нажал на кнопку "Сохранить",
+  после чего либо перешел на следующий шаг, либо увидел ошибки валидации полей.
+category: Профиль-резюме
+application: applicant
+
+internal:
+  event: resume_wizard_step_save_result
+  platform: iOS
+
+  hhtmSource:
+    description: Текущий шаг визарда
+    oneOf:
+      - name: resume_wizard_personal_info_step
+        description: Шаг заполнения основной информации
+      - name: resume_wizard_position_step
+        description: Шаг заполнения желаемой должности
+      - name: resume_wizard_education_step
+        description: Шаг заполнения образования
+      - name: resume_wizard_experience_step
+        description: Шаг заполнения опыта
+      - name: resume_wizard_key_skills_step
+        description: Шаг заполнения ключевых навыков
+      - name: resume_wizard_languages_step
+        description: Шаг заполнения владения языками
+      - name: resume_wizard_education_item_step
+        description: Шаг заполнения учебного заведения
+      - name: resume_wizard_experience_item_step
+        description: Шаг заполнения места работы
+
+  hhtmFrom:
+    description: Точка входа в визард
+    oneOf:
+      - name: profile
+        description: Визард открыт из профиля
+      - name: response
+        description: Визард открыт при попытке откликнуться на вакансию
+      - name: resume_list
+        description: Визард открыт из списка резюме
+      - name: first_resume
+        description: Визард открыт из экрана создания первого резюме
+
+  resumeHash:
+    type: string
+    description: Идентификатор резюме
+
+  type:
+    description: Тип визарда
+    oneOf:
+      - name: completion
+        description: Визард для дозаполнения резюме
+      - name: correction
+        description: Визард для разблокировки резюме
+      - name: creation
+        description: Визард для создания резюме
+      - name: duplication
+        description: Визард для дублирования резюме
+
+  screenType:
+    oneOf:
+      - name: profile
+      - name: resume_list
+
+  errors:
+    description: |
+      Список ошибок валидации на текущем шаге визарда в виде JSON-строки,
+      где ключ - поле резюме, а значение - причина ошибки. Например:
+
+      ```
+      "{
+          "first_name": "required",
+          "last_name": "required",
+          "gender": "required",
+          "contact/0/value": "phone_number",
+          "contact/1/value": "email_address",
+          "area": "required",
+          "citizenship": "min_length"
+      }"
+      ```
+    type: string

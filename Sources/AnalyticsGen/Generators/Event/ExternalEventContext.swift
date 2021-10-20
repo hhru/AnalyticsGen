@@ -20,6 +20,7 @@ struct ExternalEventContext: Encodable {
 
         let description: String?
         let value: String?
+        let oneOf: [OneOf]?
     }
 
     // MARK: - Instance Properties

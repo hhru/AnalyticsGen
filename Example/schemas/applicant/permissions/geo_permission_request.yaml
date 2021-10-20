@@ -1,0 +1,19 @@
+---
+name: Запрос на определение геопозиции
+description: У пользователя запросили разрешение на гео
+category: Разрешения
+application: applicant
+
+external:
+  category: anonymous/applicant
+  action: request-geo-permission
+  label:
+    oneOf:
+      - name: request-open
+        description: У пользователя запросили разрешение на гео
+
+internal:
+  event: screen_shown
+  screenName:
+    const: geo_permission
+    description: Диалог с запросом доступа к местоположению
