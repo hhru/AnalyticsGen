@@ -51,13 +51,13 @@ final class DefaultEventGenerator: EventGenerator {
             return true
         }
 
-        let hasGeneratedFiles = try !FileManager
+        let hasGeneratedFiles = try? !FileManager
             .default
             .contentsOfDirectory(atPath: destinationPath)
             .filter { $0.lowercased().hasSuffix(.swiftExtension) }
             .isEmpty
 
-        guard hasGeneratedFiles,
+        guard (hasGeneratedFiles ?? false),
               let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
               let remoteGitReference = remoteGitReference else {
             return true
@@ -83,7 +83,7 @@ final class DefaultEventGenerator: EventGenerator {
     private func clearDestinationFolder(at path: String) throws {
         let fileManager = FileManager.default
 
-        try fileManager.contentsOfDirectory(atPath: path).forEach { filename in
+        try? fileManager.contentsOfDirectory(atPath: path).forEach { filename in
             if filename.hasSuffix(.swiftExtension) {
                 try fileManager.removeItem(atPath: path + "/" + filename)
             }
