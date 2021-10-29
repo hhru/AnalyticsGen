@@ -1,6 +1,6 @@
 import Foundation
 
-enum AccessTokenConfiguration: Decodable {
+struct AccessTokenConfiguration: Decodable {
 
     // MARK: - Nested Types
 
@@ -19,23 +19,23 @@ enum AccessTokenConfiguration: Decodable {
         let key: String
     }
 
-    // MARK: - Enumeration Cases
+    // MARK: - Instance Properties
 
-    case environmentVariable(String)
-    case keychain(KeychainParameters)
-    case value(String)
+    let value: String?
+    let environmentVariable: String?
+    let keychainParameters: KeychainParameters?
 
     // MARK: - Initializers
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-            if let value = try container.decodeIfPresent(String.self, forKey: .environmentVariable) {
-                self = .environmentVariable(value)
-            } else {
-                self = .keychain(try container.decode(forKey: .keychain))
-            }
+            self.value = nil
+            self.environmentVariable = try container.decodeIfPresent(forKey: .environmentVariable)
+            self.keychainParameters = try container.decodeIfPresent(forKey: .keychain)
         } else {
-            self = .value(try String(from: decoder))
+            self.value = try String(from: decoder)
+            self.environmentVariable = nil
+            self.keychainParameters = nil
         }
     }
 }
