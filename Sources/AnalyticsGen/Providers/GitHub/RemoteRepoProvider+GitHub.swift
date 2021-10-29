@@ -37,26 +37,20 @@ private extension AccessTokenConfiguration {
     // MARK: - Instance Methods
 
     func resolveToken() throws -> String {
-        switch self {
-        case .value(let token):
+        if let value = value {
+            return value
+        } else if let environmentVariable = environmentVariable,
+                  let token = ProcessInfo.processInfo.environment[environmentVariable] {
             return token
-
-        case .environmentVariable(let environmentVariable):
-            guard let token = ProcessInfo.processInfo.environment[environmentVariable] else {
-                throw MessageError("Environment variable '\(environmentVariable)' not found.")
-            }
-
-            return token
-
-        case .keychain(let parameters):
+        } else if let parameters = keychainParameters {
             let keychain = Keychain(service: parameters.service)
 
-            guard let token = try keychain.getString(parameters.key) else {
-                throw MessageError("Failed to obtain token from keychain")
+            if let token = try keychain.getString(parameters.key) {
+                return token
             }
-
-            return token
         }
+
+        throw MessageError("GitHub access token not found.")
     }
 }
 
