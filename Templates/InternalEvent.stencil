@@ -15,7 +15,8 @@ import Analytics
  - **Эксперимент**: [{{ experiment.description }}]({{ experiment.url }})
 {% endif %}
  */
-{{ accessModifier }} struct {{ structName }}: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+{{ accessModifier }} struct {{ structName }}:
+    {{ protocols }} {
 
     {{ accessModifier }} enum CodingKeys: String, CodingKey {
         {% for parameter in parameters %}

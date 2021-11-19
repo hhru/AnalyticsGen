@@ -9,7 +9,10 @@ import Analytics
  - **Описание**: У пользователя обновились карточки на главном экране
  - **Категория**: Главный экран
  */
-public struct MainScreenShowEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct MainScreenShowEvent:
+    ParametrizedInternalAnalyticsEvent,
+    SlashAnalyticsEvent,
+    ScreenAnalyticsKeyContainable {
 
     public enum CodingKeys: String, CodingKey {
         case screenName = "screenName"

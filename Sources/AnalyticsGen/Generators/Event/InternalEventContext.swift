@@ -33,6 +33,7 @@ struct InternalEventContext: Encodable {
     let eventName: String
     let experiment: Experiment?
     let structName: String
+    let protocols: String
     let parameters: [Parameter]?
     let hasParametersToInit: Bool
 }

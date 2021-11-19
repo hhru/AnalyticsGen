@@ -9,7 +9,9 @@ import Analytics
  - **Описание**: Пользователь кликнул на какую-либо кнопку написания в поддержку
  - **Категория**: Поддержка
  */
-public struct SupportChatClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct SupportChatClickEvent:
+    ParametrizedInternalAnalyticsEvent,
+    SlashAnalyticsEvent {
 
     public enum CodingKeys: String, CodingKey {
         case buttonName = "buttonName"
