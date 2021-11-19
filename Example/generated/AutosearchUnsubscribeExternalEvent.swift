@@ -6,7 +6,6 @@ import Analytics
 /**
  Отписка от автопоиска
 
- - **Описание**: Пользователь отключил уведомления подписки
  - **Категория**: Автопоиск
  */
 public struct AutosearchUnsubscribeExternalEvent: UserCategoryEvent {

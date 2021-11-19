@@ -26,7 +26,7 @@ struct ExternalEventContext: Encodable {
     // MARK: - Instance Properties
 
     let name: String
-    let description: String
+    let description: String?
     let category: String
     let structName: String
     let action: Action
