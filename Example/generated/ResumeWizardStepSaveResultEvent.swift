@@ -9,7 +9,9 @@ import Analytics
  - **Описание**: Пользователь заполнил текущий шаг визарда и нажал на кнопку "Сохранить", после чего либо перешел на следующий шаг, либо увидел ошибки валидации полей.
  - **Категория**: Профиль-резюме
  */
-public struct ResumeWizardStepSaveResultEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct ResumeWizardStepSaveResultEvent:
+    ParametrizedInternalAnalyticsEvent,
+    SlashAnalyticsEvent {
 
     public enum CodingKeys: String, CodingKey {
         case resumeHash = "resumeHash"

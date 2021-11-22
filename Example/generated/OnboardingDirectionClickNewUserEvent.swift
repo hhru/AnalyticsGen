@@ -9,7 +9,9 @@ import Analytics
  - **Описание**: Пользователь кликнул на "Я новый"
  - **Категория**: Онбоардинг
  */
-public struct OnboardingDirectionClickNewUserEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct OnboardingDirectionClickNewUserEvent:
+    ParametrizedInternalAnalyticsEvent,
+    SlashAnalyticsEvent {
 
     public enum CodingKeys: String, CodingKey {
         case hhtmSource

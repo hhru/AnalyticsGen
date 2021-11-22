@@ -9,7 +9,9 @@ import Analytics
  - **Описание**: Пользователь нажал на платный сервис
  - **Категория**: Соискательские сервисы
  */
-public struct PaidServiceButtonClickEvent: ParametrizedInternalAnalyticsEvent, SlashAnalyticsEvent {
+public struct PaidServiceButtonClickEvent:
+    ParametrizedInternalAnalyticsEvent,
+    SlashAnalyticsEvent {
 
     public enum CodingKeys: String, CodingKey {
         case buttonName = "buttonName"
