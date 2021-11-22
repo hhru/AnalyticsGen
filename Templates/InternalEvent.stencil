@@ -9,7 +9,9 @@ import Analytics
 /**
  {{ name }}
 
+{% if description %}
  - **Описание**: {{ description }}
+{% endif %} 
  - **Категория**: {{ category }}
  {% if event.experiment %}
  - **Эксперимент**: [{{ experiment.description }}]({{ experiment.url }})

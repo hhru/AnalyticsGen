@@ -9,7 +9,9 @@ import Analytics
 /**
  {{ name }}
 
+{% if description %}
  - **Описание**: {{ description }}
+{% endif %} 
  - **Категория**: {{ category }}
  */
 {{ accessModifier }} struct {{ structName }}: UserCategoryEvent {

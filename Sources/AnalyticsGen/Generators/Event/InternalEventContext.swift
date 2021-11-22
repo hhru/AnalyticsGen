@@ -28,7 +28,7 @@ struct InternalEventContext: Encodable {
     // MARK: - Instance Properties
 
     let name: String
-    let description: String
+    let description: String?
     let category: String
     let eventName: String
     let experiment: Experiment?
