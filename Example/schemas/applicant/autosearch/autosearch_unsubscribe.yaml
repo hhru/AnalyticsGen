@@ -2,6 +2,7 @@
 name: Отписка от автопоиска
 category: Автопоиск
 application: applicant
+deprecated: true
 
 external:
   category: applicant
