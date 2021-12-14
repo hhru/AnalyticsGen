@@ -20,6 +20,6 @@ private extension String {
 
     // MARK: - Type Properties
 
-    static let version = "0.3.2"
+    static let version = "0.3.3"
     static let description = "Generate analytics code for you Swift iOS project"
 }
