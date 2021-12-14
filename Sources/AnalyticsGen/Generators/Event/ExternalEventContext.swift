@@ -25,6 +25,7 @@ struct ExternalEventContext: Encodable {
 
     // MARK: - Instance Properties
 
+    let deprecated: Bool
     let name: String
     let description: String?
     let category: String
