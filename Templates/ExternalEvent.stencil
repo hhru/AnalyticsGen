@@ -24,7 +24,7 @@ import Analytics
     {{ accessModifier }} enum Label: String {
         {% for oneOf in label.oneOf %}
         /// {{ oneOf.description }}
-        case {% call propertyName oneOf.name %}
+        case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
 
         {% endif %}
