@@ -203,6 +203,13 @@ final class DefaultEventGenerator: EventGenerator {
     func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
             fileProvider.readFile(at: configurationPath)
+        }.map { (config: ConfigurationCollection) in
+            // Temporary solution collection will be handled in MOB-26188
+            guard let configuration = config.configurations.first else {
+                throw NSError(domain: "Empty Array", code: 0)
+            }
+            
+            return configuration
         }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in

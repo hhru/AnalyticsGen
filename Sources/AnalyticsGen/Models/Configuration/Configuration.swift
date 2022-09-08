@@ -1,7 +1,7 @@
 import Foundation
 import AnalyticsGenTools
 
-struct Configuration: Decodable {
+struct Configuration {
 
     // MARK: - Instance Properties
 
@@ -9,4 +9,5 @@ struct Configuration: Decodable {
     let destination: String?
     let platform: EventPlatform?
     let template: TemplateConfiguration?
+    let name: String?
 }
