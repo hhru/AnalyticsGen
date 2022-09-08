@@ -9,5 +9,5 @@ struct GeneratedConfiguration {
     let destination: String?
     let platform: EventPlatform?
     let template: TemplateConfiguration?
-    let name: String?
+    let name: String
 }

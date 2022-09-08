@@ -207,16 +207,24 @@ final class DefaultEventGenerator: EventGenerator {
     func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
             fileProvider.readFile(at: configurationPath)
-        }.map { (config: Configuration) in
-            // Temporary solution collection will be handled in MOB-26188
-            guard let configuration = config.configurations.first else {
-                throw NSError(domain: "Empty Array", code: 0)
-            }
-            
-            return configuration
-        }.then { configuration in
+        }.map { (configuration: Configuration) in
+            let configurations = configuration.configurations
+            Log.info("Parsed \(configurations.count) configurations\n")
+            return configurations.reversed()
+        }.then { configurations in
+            self.iterate(configurations: configurations, force: force, previousResults: [])
+        }
+    }
+    
+    func generate(configuration: GeneratedConfiguration, force: Bool) -> Promise<EventGenerationResult> {
+        firstly {
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
-        }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
+        }
+        .tap { _ in
+            Log.info("Building analytics events for \(configuration.name)")
+        }
+        .then {
+            configuration, remoteGitReference -> Promise<EventGenerationResult> in
             guard try self.shouldPerformGeneration(
                 force: force,
                 destinationPath: configuration.destination ?? "./",
@@ -224,7 +232,7 @@ final class DefaultEventGenerator: EventGenerator {
             ) else {
                 return .value(.upToDate)
             }
-
+            
             return try self
                 .resolveSchemasPath(configuration: configuration)
                 .done {
@@ -234,8 +242,33 @@ final class DefaultEventGenerator: EventGenerator {
                         remoteGitReference: remoteGitReference
                     )
                 }
+                .tap{ _ in
+                    Log.info("Analytics events for \(configuration.name) are built\n")
+                }
                 .map { .success }
         }
+    }
+
+    func iterate(
+        configurations: [GeneratedConfiguration],
+        force: Bool,
+        previousResults: [EventGenerationResult]
+    ) -> Promise<EventGenerationResult> {
+        var configurations = configurations
+        guard let configuration = configurations.popLast() else {
+            return Promise<EventGenerationResult> { seal in
+                seal.fulfill(previousResults.contains(.success) ? .success : .upToDate)
+            }
+        }
+        
+        return generate(configuration: configuration, force: force)
+            .then { result in
+                self.iterate(
+                    configurations: configurations,
+                    force: force,
+                    previousResults: previousResults.appending(result)
+                )
+            }
     }
 }
 
