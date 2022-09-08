@@ -30,7 +30,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - Instance Methods
 
-    private func fetchGitReference(configuration: Configuration) throws -> Promise<GitReference?> {
+    private func fetchGitReference(configuration: GeneratedConfiguration) throws -> Promise<GitReference?> {
         switch configuration.source {
         case .local:
             return .value(.none)
@@ -66,7 +66,7 @@ final class DefaultEventGenerator: EventGenerator {
         return lockReference != remoteGitReference
     }
 
-    private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
+    private func resolveSchemasPath(configuration: GeneratedConfiguration) throws -> Promise<URL> {
         switch configuration.source {
         case .local(let path):
             return .value(URL(fileURLWithPath: path))
@@ -167,7 +167,11 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: Configuration, schemasPath: URL, remoteGitReference: GitReference?) throws {
+    private func generate(
+        configuration: GeneratedConfiguration,
+        schemasPath: URL,
+        remoteGitReference: GitReference?
+    ) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -203,6 +207,13 @@ final class DefaultEventGenerator: EventGenerator {
     func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
             fileProvider.readFile(at: configurationPath)
+        }.map { (config: Configuration) in
+            // Temporary solution collection will be handled in MOB-26188
+            guard let configuration = config.configurations.first else {
+                throw NSError(domain: "Empty Array", code: 0)
+            }
+            
+            return configuration
         }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
