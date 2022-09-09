@@ -202,28 +202,12 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    // MARK: - EventGenerator
-
-    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
-        firstly {
-            fileProvider.readFile(at: configurationPath)
-        }.map { (configuration: Configuration) in
-            let configurations = configuration.configurations
-            Log.info("Parsed \(configurations.count) configurations\n")
-            return configurations.reversed()
-        }.then { configurations in
-            self.iterate(configurations: configurations, force: force, previousResults: [])
-        }
-    }
-    
-    func generate(configuration: GeneratedConfiguration, force: Bool) -> Promise<EventGenerationResult> {
+    private func generate(configuration: GeneratedConfiguration, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
-        }
-        .tap { _ in
+        }.get { _ in
             Log.info("Building analytics events for \(configuration.name)")
-        }
-        .then {
+        }.then {
             configuration, remoteGitReference -> Promise<EventGenerationResult> in
             guard try self.shouldPerformGeneration(
                 force: force,
@@ -249,26 +233,20 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    func iterate(
-        configurations: [GeneratedConfiguration],
-        force: Bool,
-        previousResults: [EventGenerationResult]
-    ) -> Promise<EventGenerationResult> {
-        var configurations = configurations
-        guard let configuration = configurations.popLast() else {
-            return Promise<EventGenerationResult> { seal in
-                seal.fulfill(previousResults.contains(.success) ? .success : .upToDate)
-            }
+    // MARK: - EventGenerator
+
+    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
+        firstly {
+            fileProvider.readFile(at: configurationPath, type: Configuration.self)
+        }.map { configuration in
+           configuration.configurations.reversed()
+        }.get { configurations in
+            Log.info("Parsed \(configurations.count) configurations\n")
+        }.then { configurations in
+            when(fulfilled: configurations.map { self.generate(configuration: $0, force: force) })
+        }.map { results in
+            results.contains(.success) ? .success : .upToDate
         }
-        
-        return generate(configuration: configuration, force: force)
-            .then { result in
-                self.iterate(
-                    configurations: configurations,
-                    force: force,
-                    previousResults: previousResults.appending(result)
-                )
-            }
     }
 }
 
