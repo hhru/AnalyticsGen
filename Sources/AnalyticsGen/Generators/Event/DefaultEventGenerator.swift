@@ -59,7 +59,7 @@ final class DefaultEventGenerator: EventGenerator {
             .isEmpty
 
         guard (hasGeneratedFiles ?? false),
-              let lockReferenceDict: Dictionary<String, GitReference> = try self.fileProvider.readFileIfExists(
+              let lockReferenceDict: [String: GitReference] = try self.fileProvider.readFileIfExists(
                 at: .lockFilePath
               ),
               let remoteGitReference = remoteGitReference,
@@ -202,14 +202,9 @@ final class DefaultEventGenerator: EventGenerator {
         }
 
         if let reference = remoteGitReference {
-            var dict: Dictionary<String, GitReference>
-            do {
-                dict = try fileProvider.readFile(at: .lockFilePath)
-            } catch {
-                dict = [:]
-            }
-            dict[configuration.name] = reference
-            try fileProvider.writeFile(content: dict, at: .lockFilePath)
+            var gitReferences: [String: GitReference] = (try? fileProvider.readFile(at: .lockFilePath)) ?? [:]
+            gitReferences[configuration.name] = reference
+            try fileProvider.writeFile(content: gitReferences, at: .lockFilePath)
         }
     }
 
@@ -238,7 +233,7 @@ final class DefaultEventGenerator: EventGenerator {
                         remoteGitReference: remoteGitReference
                     )
                 }.get { _ in
-                    Log.info("Analytics events for \(configuration.name) are built\n")
+                    Log.info("Analytics events for \(configuration.name) are generated\n")
                 }.map { .success }
         }
     }
