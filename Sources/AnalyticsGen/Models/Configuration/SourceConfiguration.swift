@@ -26,3 +26,22 @@ enum SourceConfiguration: Decodable {
         }
     }
 }
+
+extension SourceConfiguration {
+    init(source: SourceConfiguration, target: Target) {
+        switch source {
+        case .local:
+            self = source
+        case let .gitHub(configuration: configuration):
+            self = .gitHub(
+                configuration: GitHubSourceConfiguration(
+                    owner: configuration.owner,
+                    repo: configuration.repo,
+                    path: target.path ?? configuration.path,
+                    ref: target.ref ?? configuration.ref,
+                    accessToken: configuration.accessToken
+                )
+            )
+        }
+    }
+}

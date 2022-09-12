@@ -30,7 +30,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - Instance Methods
 
-    private func fetchGitReference(configuration: Configuration) throws -> Promise<GitReference?> {
+    private func fetchGitReference(configuration: GeneratedConfiguration) throws -> Promise<GitReference?> {
         switch configuration.source {
         case .local:
             return .value(.none)
@@ -44,6 +44,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     private func shouldPerformGeneration(
         force: Bool,
+        name: String,
         destinationPath: String,
         remoteGitReference: GitReference?
     ) throws -> Bool {
@@ -58,15 +59,18 @@ final class DefaultEventGenerator: EventGenerator {
             .isEmpty
 
         guard (hasGeneratedFiles ?? false),
-              let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
-              let remoteGitReference = remoteGitReference else {
+              let lockReferenceDict: [String: GitReference] = try self.fileProvider.readFileIfExists(
+                at: .lockFilePath
+              ),
+              let remoteGitReference = remoteGitReference,
+              let lockReference = lockReferenceDict[name] else {
             return true
         }
 
         return lockReference != remoteGitReference
     }
 
-    private func resolveSchemasPath(configuration: Configuration) throws -> Promise<URL> {
+    private func resolveSchemasPath(configuration: GeneratedConfiguration) throws -> Promise<URL> {
         switch configuration.source {
         case .local(let path):
             return .value(URL(fileURLWithPath: path))
@@ -167,7 +171,11 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: Configuration, schemasPath: URL, remoteGitReference: GitReference?) throws {
+    private func generate(
+        configuration: GeneratedConfiguration,
+        schemasPath: URL,
+        remoteGitReference: GitReference?
+    ) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -180,7 +188,7 @@ final class DefaultEventGenerator: EventGenerator {
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
-                Log.info("Fetching schema: \(url.lastPathComponent)")
+                Log.info("Fetching \(configuration.name) schema: \(url.lastPathComponent)")
 
                 let event: Event = try fileProvider.readFile(at: url.path)
 
@@ -194,26 +202,28 @@ final class DefaultEventGenerator: EventGenerator {
         }
 
         if let reference = remoteGitReference {
-            try fileProvider.writeFile(content: reference, at: .lockFilePath)
+            var gitReferences: [String: GitReference] = (try? fileProvider.readFile(at: .lockFilePath)) ?? [:]
+            gitReferences[configuration.name] = reference
+            try fileProvider.writeFile(content: gitReferences, at: .lockFilePath)
         }
     }
 
-    // MARK: - EventGenerator
-
-    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
+    private func generate(configuration: GeneratedConfiguration, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
-            fileProvider.readFile(at: configurationPath)
-        }.then { configuration in
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
-        }.then { configuration, remoteGitReference -> Promise<EventGenerationResult> in
+        }.get { _ in
+            Log.info("Building analytics events for \(configuration.name)")
+        }.then {
+            configuration, remoteGitReference -> Promise<EventGenerationResult> in
             guard try self.shouldPerformGeneration(
                 force: force,
+                name: configuration.name,
                 destinationPath: configuration.destination ?? "./",
                 remoteGitReference: remoteGitReference
             ) else {
                 return .value(.upToDate)
             }
-
+            
             return try self
                 .resolveSchemasPath(configuration: configuration)
                 .done {
@@ -222,8 +232,25 @@ final class DefaultEventGenerator: EventGenerator {
                         schemasPath: $0,
                         remoteGitReference: remoteGitReference
                     )
-                }
-                .map { .success }
+                }.get { _ in
+                    Log.info("Analytics events for \(configuration.name) are generated\n")
+                }.map { .success }
+        }
+    }
+
+    // MARK: - EventGenerator
+
+    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
+        firstly {
+            fileProvider.readFile(at: configurationPath, type: Configuration.self)
+        }.map { configuration in
+            configuration.configurations.reversed()
+        }.get { configurations in
+            Log.info("Parsed \(configurations.count) configurations\n")
+        }.then { configurations in
+            when(fulfilled: configurations.map { self.generate(configuration: $0, force: force) })
+        }.map { results in
+            results.contains(.success) ? .success : .upToDate
         }
     }
 }

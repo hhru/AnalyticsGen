@@ -10,7 +10,7 @@ protocol GenerationParametersResolving {
 
     // MARK: - Instance Methods
 
-    func resolveGenerationParameters(from configuration: Configuration) throws -> GenerationParameters
+    func resolveGenerationParameters(from configuration: GeneratedConfiguration) throws -> GenerationParameters
 }
 
 // MARK: -
@@ -19,7 +19,7 @@ extension GenerationParametersResolving {
 
     // MARK: - Instance Methods
 
-    private func resolveInternalTemplateType(configuration: Configuration) -> RenderTemplateType {
+    private func resolveInternalTemplateType(configuration: GeneratedConfiguration) -> RenderTemplateType {
         if let templatesPath = configuration.template?.internal?.path {
             return .custom(path: templatesPath)
         } else {
@@ -27,7 +27,7 @@ extension GenerationParametersResolving {
         }
     }
 
-    private func resolveExternalTemplateType(configuration: Configuration) -> RenderTemplateType {
+    private func resolveExternalTemplateType(configuration: GeneratedConfiguration) -> RenderTemplateType {
         if let templatesPath = configuration.template?.external?.path {
             return .custom(path: templatesPath)
         } else {
@@ -35,7 +35,7 @@ extension GenerationParametersResolving {
         }
     }
 
-    private func resolveDestination(configuration: Configuration) -> RenderDestination {
+    private func resolveDestination(configuration: GeneratedConfiguration) -> RenderDestination {
         if let destinationPath = configuration.destination {
             return .file(path: destinationPath)
         } else {
@@ -45,7 +45,7 @@ extension GenerationParametersResolving {
 
     // MARK: -
 
-    func resolveGenerationParameters(from configuration: Configuration) throws -> GenerationParameters {
+    func resolveGenerationParameters(from configuration: GeneratedConfiguration) throws -> GenerationParameters {
         let internalTemplateType = resolveInternalTemplateType(configuration: configuration)
         let externalTemplateType = resolveExternalTemplateType(configuration: configuration)
 
