@@ -26,7 +26,7 @@ struct Configuration: Decodable {
                     destination: destination,
                     platform: platform,
                     template: template,
-                    name: nil
+                    name: "Main"
                 )
             ]
         }
