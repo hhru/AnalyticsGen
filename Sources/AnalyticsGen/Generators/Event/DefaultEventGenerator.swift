@@ -44,6 +44,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     private func shouldPerformGeneration(
         force: Bool,
+        name: String,
         destinationPath: String,
         remoteGitReference: GitReference?
     ) throws -> Bool {
@@ -58,8 +59,11 @@ final class DefaultEventGenerator: EventGenerator {
             .isEmpty
 
         guard (hasGeneratedFiles ?? false),
-              let lockReference: GitReference = try self.fileProvider.readFileIfExists(at: .lockFilePath),
-              let remoteGitReference = remoteGitReference else {
+              let lockReferenceDict: Dictionary<String, GitReference> = try self.fileProvider.readFileIfExists(
+                at: .lockFilePath
+              ),
+              let remoteGitReference = remoteGitReference,
+              let lockReference = lockReferenceDict[name] else {
             return true
         }
 
@@ -184,7 +188,7 @@ final class DefaultEventGenerator: EventGenerator {
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
-                Log.info("Fetching schema: \(url.lastPathComponent)")
+                Log.info("Fetching \(configuration.name) schema: \(url.lastPathComponent)")
 
                 let event: Event = try fileProvider.readFile(at: url.path)
 
@@ -198,7 +202,14 @@ final class DefaultEventGenerator: EventGenerator {
         }
 
         if let reference = remoteGitReference {
-            try fileProvider.writeFile(content: reference, at: .lockFilePath)
+            var dict: Dictionary<String, GitReference>
+            do {
+                dict = try fileProvider.readFile(at: .lockFilePath)
+            } catch {
+                dict = [:]
+            }
+            dict[configuration.name] = reference
+            try fileProvider.writeFile(content: dict, at: .lockFilePath)
         }
     }
 
@@ -211,6 +222,7 @@ final class DefaultEventGenerator: EventGenerator {
             configuration, remoteGitReference -> Promise<EventGenerationResult> in
             guard try self.shouldPerformGeneration(
                 force: force,
+                name: configuration.name,
                 destinationPath: configuration.destination ?? "./",
                 remoteGitReference: remoteGitReference
             ) else {
@@ -225,11 +237,9 @@ final class DefaultEventGenerator: EventGenerator {
                         schemasPath: $0,
                         remoteGitReference: remoteGitReference
                     )
-                }
-                .tap{ _ in
+                }.get { _ in
                     Log.info("Analytics events for \(configuration.name) are built\n")
-                }
-                .map { .success }
+                }.map { .success }
         }
     }
 
@@ -239,7 +249,7 @@ final class DefaultEventGenerator: EventGenerator {
         firstly {
             fileProvider.readFile(at: configurationPath, type: Configuration.self)
         }.map { configuration in
-           configuration.configurations.reversed()
+            configuration.configurations.reversed()
         }.get { configurations in
             Log.info("Parsed \(configurations.count) configurations\n")
         }.then { configurations in
