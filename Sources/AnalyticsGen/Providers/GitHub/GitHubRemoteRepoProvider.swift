@@ -11,7 +11,7 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
 
     // MARK: - RemoteRepoProvider
 
-    func fetchRepo(owner: String, repo: String, ref: String, token: String) -> Promise<URL> {
+    func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
         guard let downloadURL = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/zipball/\(ref)") else {
             return .error(HTTPError(code: .badRequest, reason: "Invalid url"))
         }
@@ -29,8 +29,14 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                     switch httpResponse.result {
                     case .success(let data):
                         let fileManager = FileManager.default
-                        let archiveFileURL = fileManager.temporaryDirectory.appendingPathComponent("remote-schemas.zip")
-                        let destinationPathURL = fileManager.temporaryDirectory.appendingPathComponent("remote-schema")
+
+                        let archiveFileURL = fileManager
+                            .temporaryDirectory
+                            .appendingPathComponent("remote-schemas-\(key).zip")
+
+                        let destinationPathURL = fileManager
+                            .temporaryDirectory
+                            .appendingPathComponent("remote-schema-\(key)")
 
                         do {
                             try data.write(to: archiveFileURL)

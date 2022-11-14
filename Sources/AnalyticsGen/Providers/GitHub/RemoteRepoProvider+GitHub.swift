@@ -7,13 +7,14 @@ extension RemoteRepoProvider {
 
     // MARK: - Instance Methods
 
-    func fetchRepo(gitHubConfiguration configuration: GitHubSourceConfiguration) -> Promise<URL> {
+    func fetchRepo(gitHubConfiguration configuration: GitHubSourceConfiguration, key: String) -> Promise<URL> {
         Promise { seal in
             fetchRepo(
                 owner: configuration.owner,
                 repo: configuration.repo,
                 ref: configuration.ref.name,
-                token: try configuration.accessToken.resolveToken()
+                token: try configuration.accessToken.resolveToken(),
+                key: key
             ).pipe(to: seal.resolve(_:))
         }
     }

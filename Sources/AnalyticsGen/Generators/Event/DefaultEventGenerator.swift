@@ -70,14 +70,14 @@ final class DefaultEventGenerator: EventGenerator {
         return lockReference != remoteGitReference
     }
 
-    private func resolveSchemasPath(configuration: GeneratedConfiguration) throws -> Promise<URL> {
+    private func resolveSchemasPath(configuration: GeneratedConfiguration, key: String) throws -> Promise<URL> {
         switch configuration.source {
         case .local(let path):
             return .value(URL(fileURLWithPath: path))
 
         case .gitHub(let gitHubConfiguration):
             return remoteRepoProvider
-                .fetchRepo(gitHubConfiguration: gitHubConfiguration)
+                .fetchRepo(gitHubConfiguration: gitHubConfiguration, key: key)
                 .map { path in
                     gitHubConfiguration.path.map { path.appendingPathComponent($0) } ?? path
                 }
@@ -212,7 +212,7 @@ final class DefaultEventGenerator: EventGenerator {
         firstly {
             try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
         }.get { _ in
-            Log.info("Building analytics events for \(configuration.name)")
+            Log.info("Checking out analytics events for \(configuration.name)")
         }.then {
             configuration, remoteGitReference -> Promise<EventGenerationResult> in
             guard try self.shouldPerformGeneration(
@@ -225,7 +225,7 @@ final class DefaultEventGenerator: EventGenerator {
             }
             
             return try self
-                .resolveSchemasPath(configuration: configuration)
+                .resolveSchemasPath(configuration: configuration, key: configuration.name)
                 .done {
                     try self.generate(
                         configuration: configuration,
@@ -233,7 +233,7 @@ final class DefaultEventGenerator: EventGenerator {
                         remoteGitReference: remoteGitReference
                     )
                 }.get { _ in
-                    Log.info("Analytics events for \(configuration.name) are generated\n")
+                    Log.info("Analytics events for \(configuration.name) are generated")
                 }.map { .success }
         }
     }
@@ -246,7 +246,7 @@ final class DefaultEventGenerator: EventGenerator {
         }.map { configuration in
             configuration.configurations.reversed()
         }.get { configurations in
-            Log.info("Parsed \(configurations.count) configurations\n")
+            Log.info("Found \(configurations.count) configurations\n")
         }.then { configurations in
             when(fulfilled: configurations.map { self.generate(configuration: $0, force: force) })
         }.map { results in
