@@ -38,7 +38,7 @@ import Analytics
             {% if oneOf.description %}
         /// {{ oneOf.description }}
             {% endif %}
-        case {% call propertyName oneOf.name %}
+        case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
 
         {% endif %}
