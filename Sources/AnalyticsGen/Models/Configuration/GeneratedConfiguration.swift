@@ -1,7 +1,7 @@
 import Foundation
 import AnalyticsGenTools
 
-struct GeneratedConfiguration {
+struct GeneratedConfiguration: Equatable {
 
     // MARK: - Instance Properties
 

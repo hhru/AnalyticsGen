@@ -1,6 +1,6 @@
 import Foundation
 
-enum SourceConfiguration: Decodable {
+enum SourceConfiguration: Decodable, Equatable {
 
     // MARK: - Nested Types
 

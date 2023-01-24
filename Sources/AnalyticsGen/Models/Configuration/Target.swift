@@ -1,7 +1,7 @@
 import Foundation
 import AnalyticsGenTools
 
-struct Target: Decodable {
+struct Target: Decodable, Equatable {
     
     let name: String
     let platform: EventPlatform?

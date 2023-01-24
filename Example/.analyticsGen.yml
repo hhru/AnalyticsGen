@@ -1,6 +1,67 @@
-source: schemas
-destination: generated
+source:
+  gitHub:
+    owner: hhru
+    repo: hh-mobile-analytics
+    ref:
+      finders:
+        - type: matched_tag
+          source:
+            type:
+              env:
+                - GIT_BRANCH
+                - GIT_MERGE_BRANCH
+            condition:
+              type: regex
+              value: ^PORTFOLIO-\d+$
+        - type: first_merged
+          skip:
+            source:
+              type:
+                env:
+                  - GIT_BRANCH
+                  - GIT_MERGE_BRANCH
+              condition:
+                type: const
+                value: develop
+          branch: develop
+          condition:
+            type: regex
+            value: ^PORTFOLIO-\d+$
+        - type: matched_tag
+          source:
+            type:
+              file:
+                - path: Configurations/Personal.xcconfig
+                  variable: ANALYTICS_REF
+            condition:
+              type: regex
+              value: ^PORTFOLIO-\d+$
+        - type: matched_tag
+          source:
+            type: git
+            condition:
+              type: regex
+              value: ^PORTFOLIO-\d+$
+        - type: last_tag
+        - type: last_commit
+          branch: master
+    accessToken:
+      env: GITHUB_API_TOKEN
+      keychain:
+        service: GitHub Token
+        key: hh
 platform: iOS
+targets:
+  - name: Applicant
+    path: schemas/applicant
+    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/Applicant
+    ref:
+      tag: 2.0
+  - name: HR-Mobile
+    path: schemas/hr-mobile
+    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/HR-Mobile
+    ref:
+      tag: 2.0
 template:
   internal:
     options:

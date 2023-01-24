@@ -1,21 +1,12 @@
 import Foundation
 
-enum GitHubReferenceConfiguration: Decodable {
-
-    // MARK: - Nested Types
-
-    enum CodingKeys: String, CodingKey {
-
-        // MARK: - Enumeration Cases
-
-        case branch
-        case tag
-    }
+enum GitHubReferenceConfiguration: Decodable, Equatable {
 
     // MARK: - Enumeration Cases
 
     case branch(String)
     case tag(String)
+    case finders([GitHubReferenceFinderConfiguration])
 
     // MARK: - Instance Properties
 
@@ -23,6 +14,9 @@ enum GitHubReferenceConfiguration: Decodable {
         switch self {
         case .branch(let name), .tag(let name):
             return name
+
+        case .finders:
+            fatalError("TODO: Вынести отсюда в следующей задаче")
         }
     }
 
@@ -35,15 +29,29 @@ enum GitHubReferenceConfiguration: Decodable {
             self = .branch(branchName)
         } else if let tagName = try container.decodeIfPresent(String.self, forKey: .tag) {
             self = .tag(tagName)
+        } else if let finders = try container.decodeIfPresent([GitHubReferenceFinderConfiguration].self, forKey: .finders) {
+            self = .finders(finders)
         } else {
             throw DecodingError.typeMismatch(
                 GitHubReferenceConfiguration.self,
                 DecodingError.Context(
                     codingPath: decoder.codingPath,
-                    debugDescription: "Invalid reference, expected 'branch' or 'tag'",
+                    debugDescription: "Invalid reference, expected 'branch', 'tag' or 'finders'",
                     underlyingError: nil
                 )
             )
         }
+    }
+}
+
+extension GitHubReferenceConfiguration {
+
+    private enum CodingKeys: String, CodingKey {
+
+        // MARK: - Enumeration Cases
+
+        case branch
+        case tag
+        case finders
     }
 }
