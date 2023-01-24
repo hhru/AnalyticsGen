@@ -13,7 +13,7 @@ source:
             condition:
               type: regex
               value: ^PORTFOLIO-\d+$
-        - type: first_merged
+        - type: last_merged
           skip:
             source:
               type:

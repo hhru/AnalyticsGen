@@ -15,8 +15,8 @@ struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
                 source: try container.decode(forKey: .source)
             )
 
-        case .firstMerged:
-            self.type = .firstMerged(
+        case .lastMerged:
+            self.type = .lastMerged(
                 branch: try container.decode(forKey: .branch),
                 condition: try container.decode(forKey: .condition)
             )
@@ -53,7 +53,7 @@ extension GitHubReferenceFinderConfiguration {
 
     private enum RawType: String, Decodable {
         case matchedTag = "matched_tag"
-        case firstMerged = "first_merged"
+        case lastMerged = "last_merged"
         case lastTag = "last_tag"
         case lastCommit = "last_commit"
     }
