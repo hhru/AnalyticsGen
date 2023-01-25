@@ -54,12 +54,10 @@ platform: iOS
 targets:
   - name: Applicant
     path: schemas/applicant
-    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/Applicant
     ref:
       tag: 2.0
   - name: HR-Mobile
     path: schemas/hr-mobile
-    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/HR-Mobile
     ref:
       tag: 2.0
 template:

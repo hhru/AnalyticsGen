@@ -1,0 +1,16 @@
+Applicant:
+  ref: refs/tags/2.0
+  node_id: MDM6UmVmMjUxMjk2MzMwOnJlZnMvdGFncy8yLjA=
+  url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/refs/tags/2.0
+  object:
+    sha: 30341be941b1fecfa882d4129c65066af2f20a21
+    type: commit
+    url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/commits/30341be941b1fecfa882d4129c65066af2f20a21
+HR-Mobile:
+  ref: refs/tags/2.0
+  node_id: MDM6UmVmMjUxMjk2MzMwOnJlZnMvdGFncy8yLjA=
+  url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/refs/tags/2.0
+  object:
+    sha: 30341be941b1fecfa882d4129c65066af2f20a21
+    type: commit
+    url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/commits/30341be941b1fecfa882d4129c65066af2f20a21

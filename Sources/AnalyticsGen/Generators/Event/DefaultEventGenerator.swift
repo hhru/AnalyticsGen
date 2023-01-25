@@ -4,6 +4,7 @@ import Yams
 import AnalyticsGenTools
 import JSONSchema
 import DictionaryCoder
+import KeychainAccess
 
 final class DefaultEventGenerator: EventGenerator {
 
@@ -29,60 +30,6 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     // MARK: - Instance Methods
-
-    private func fetchGitReference(configuration: GeneratedConfiguration) throws -> Promise<GitReference?> {
-        switch configuration.source {
-        case .local:
-            return .value(.none)
-
-        case .gitHub(let gitHubConfiguration):
-            return remoteRepoProvider
-                .fetchReference(gitHubConfiguration: gitHubConfiguration)
-                .asOptional()
-        }
-    }
-
-    private func shouldPerformGeneration(
-        force: Bool,
-        name: String,
-        destinationPath: String,
-        remoteGitReference: GitReference?
-    ) throws -> Bool {
-        guard !force else {
-            return true
-        }
-
-        let hasGeneratedFiles = try? !FileManager
-            .default
-            .contentsOfDirectory(atPath: destinationPath)
-            .filter { $0.lowercased().hasSuffix(.swiftExtension) }
-            .isEmpty
-
-        guard (hasGeneratedFiles ?? false),
-              let lockReferenceDict: [String: GitReference] = try self.fileProvider.readFileIfExists(
-                at: .lockFilePath
-              ),
-              let remoteGitReference = remoteGitReference,
-              let lockReference = lockReferenceDict[name] else {
-            return true
-        }
-
-        return lockReference != remoteGitReference
-    }
-
-    private func resolveSchemasPath(configuration: GeneratedConfiguration, key: String) throws -> Promise<URL> {
-        switch configuration.source {
-        case .local(let path):
-            return .value(URL(fileURLWithPath: path))
-
-        case .gitHub(let gitHubConfiguration):
-            return remoteRepoProvider
-                .fetchRepo(gitHubConfiguration: gitHubConfiguration, key: key)
-                .map { path in
-                    gitHubConfiguration.path.map { path.appendingPathComponent($0) } ?? path
-                }
-        }
-    }
 
     private func clearDestinationFolder(at path: String) throws {
         let fileManager = FileManager.default
@@ -171,11 +118,7 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(
-        configuration: GeneratedConfiguration,
-        schemasPath: URL,
-        remoteGitReference: GitReference?
-    ) throws {
+    private func generate(configuration: GeneratedConfiguration, schemasPath: URL) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -188,53 +131,139 @@ final class DefaultEventGenerator: EventGenerator {
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
-                Log.info("Fetching \(configuration.name) schema: \(url.lastPathComponent)")
-
+                Log.info("(\(configuration.name)) Reading schema: \(url.lastPathComponent)")
                 let event: Event = try fileProvider.readFile(at: url.path)
-
                 return (event, url)
             }
 
-        try clearDestinationFolder(at: configuration.destination ?? "./")
+        try clearDestinationFolder(at: configuration.destination ?? .rootPath)
 
         try events.forEach { event, url in
             try generate(parameters: generarionParameters, event: event, schemaURL: url, platform: platform)
         }
+    }
 
-        if let reference = remoteGitReference {
-            var gitReferences: [String: GitReference] = (try? fileProvider.readFile(at: .lockFilePath)) ?? [:]
-            gitReferences[configuration.name] = reference
-            try fileProvider.writeFile(content: gitReferences, at: .lockFilePath)
+    private func shouldGenerate(
+        configuration: GeneratedConfiguration,
+        remoteGitReference: GitReference
+    ) throws -> Bool {
+        let hasGeneratedFiles = try? !FileManager
+            .default
+            .contentsOfDirectory(atPath: configuration.destination ?? .rootPath)
+            .filter { $0.lowercased().hasSuffix(.swiftExtension) }
+            .isEmpty
+
+        let lockReferenceDict = try fileProvider.readFileIfExists(
+            at: .lockFilePath,
+            type: [String: GitReference].self
+        )
+
+        guard hasGeneratedFiles == true, let lockGitReference = lockReferenceDict?[configuration.name] else {
+            return true
+        }
+
+        return lockGitReference != remoteGitReference
+    }
+
+    private func saveLockfile(configurationName: String, remoteGitReference: GitReference) throws {
+        var lockGitRerences = try self.fileProvider.readFileIfExists(
+            at: .lockFilePath,
+            type: [String: GitReference].self
+        ) ?? [:]
+
+        lockGitRerences[configurationName] = remoteGitReference
+
+        try self.fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
+    }
+
+    private func generateFromRemoteRepo(
+        gitHubConfiguration: GitHubSourceConfiguration,
+        ref: String,
+        configuration: GeneratedConfiguration,
+        remoteGitReference: GitReference
+    ) -> Promise<EventGenerationResult> {
+        firstly {
+            remoteRepoProvider.fetchRepo(
+                owner: gitHubConfiguration.owner,
+                repo: gitHubConfiguration.repo,
+                ref: ref,
+                token: try gitHubConfiguration.accessToken.resolveToken(),
+                key: configuration.name
+            )
+        }.map { repoPathURL in
+            try self.generate(
+                configuration: configuration,
+                schemasPath: gitHubConfiguration.path.map { repoPathURL.appendingPathComponent($0) } ?? repoPathURL
+            )
+
+            try self.saveLockfile(configurationName: configuration.name, remoteGitReference: remoteGitReference)
+
+            return .success
         }
     }
 
-    private func generate(configuration: GeneratedConfiguration, force: Bool) -> Promise<EventGenerationResult> {
+    private func generateFromRemoteRepo(
+        gitHubConfiguration: GitHubSourceConfiguration,
+        ref: String,
+        configuration: GeneratedConfiguration,
+        force: Bool
+    ) -> Promise<EventGenerationResult> {
         firstly {
-            try self.fetchGitReference(configuration: configuration).map { (configuration, $0) }
-        }.get { _ in
-            Log.info("Checking out analytics events for \(configuration.name)")
-        }.then {
-            configuration, remoteGitReference -> Promise<EventGenerationResult> in
-            guard try self.shouldPerformGeneration(
-                force: force,
-                name: configuration.name,
-                destinationPath: configuration.destination ?? "./",
+            remoteRepoProvider.fetchReference(
+                owner: gitHubConfiguration.owner,
+                repo: gitHubConfiguration.repo,
+                ref: ref,
+                token: try gitHubConfiguration.accessToken.resolveToken()
+            )
+        }.then { remoteGitReference in
+            let shouldPerformGeneration = try self.shouldGenerate(
+                configuration: configuration,
                 remoteGitReference: remoteGitReference
-            ) else {
+            )
+
+            if shouldPerformGeneration || force {
+                return self.generateFromRemoteRepo(
+                    gitHubConfiguration: gitHubConfiguration,
+                    ref: ref,
+                    configuration: configuration,
+                    remoteGitReference: remoteGitReference
+                )
+            } else {
                 return .value(.upToDate)
             }
-            
-            return try self
-                .resolveSchemasPath(configuration: configuration, key: configuration.name)
-                .done {
-                    try self.generate(
-                        configuration: configuration,
-                        schemasPath: $0,
-                        remoteGitReference: remoteGitReference
-                    )
-                }.get { _ in
-                    Log.info("Analytics events for \(configuration.name) are generated")
-                }.map { .success }
+        }
+    }
+
+    private func generate(
+        configuration: GeneratedConfiguration,
+        force: Bool
+    ) throws -> Promise<EventGenerationResult> {
+        switch configuration.source {
+        case .local(let path):
+            try generate(configuration: configuration, schemasPath: URL(fileURLWithPath: path))
+            return .value(.success)
+
+        case .gitHub(let gitHubConfiguration):
+            switch gitHubConfiguration.ref {
+            case .tag(let name):
+                return generateFromRemoteRepo(
+                    gitHubConfiguration: gitHubConfiguration,
+                    ref: "tags/\(name)",
+                    configuration: configuration,
+                    force: force
+                )
+
+            case .branch(let name):
+                return generateFromRemoteRepo(
+                    gitHubConfiguration: gitHubConfiguration,
+                    ref: "heads/\(name)",
+                    configuration: configuration,
+                    force: force
+                )
+
+            case .finders(_):
+                fatalError()
+            }
         }
     }
 
@@ -242,13 +271,13 @@ final class DefaultEventGenerator: EventGenerator {
 
     func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
-            fileProvider.readFile(at: configurationPath, type: Configuration.self)
+            Promise.value(try fileProvider.readFile(at: configurationPath, type: Configuration.self))
         }.map { configuration in
             configuration.configurations.reversed()
         }.get { configurations in
             Log.info("Found \(configurations.count) configurations\n")
         }.then { configurations in
-            when(fulfilled: configurations.map { self.generate(configuration: $0, force: force) })
+            when(fulfilled: try configurations.map { try self.generate(configuration: $0, force: force) })
         }.map { results in
             results.contains(.success) ? .success : .upToDate
         }
@@ -300,4 +329,29 @@ private extension String {
     static let yamlExtension = "yaml"
     static let swiftExtension = ".swift"
     static let lockFilePath = ".analyticsGen.lock"
+    static let rootPath = "./"
+}
+
+// MARK: -
+
+private extension AccessTokenConfiguration {
+
+    // MARK: - Instance Methods
+
+    func resolveToken() throws -> String {
+        if let value = value {
+            return value
+        } else if let environmentVariable = environmentVariable,
+                  let token = ProcessInfo.processInfo.environment[environmentVariable] {
+            return token
+        } else if let parameters = keychainParameters {
+            let keychain = Keychain(service: parameters.service)
+
+            if let token = try keychain.getString(parameters.key) {
+                return token
+            }
+        }
+
+        throw MessageError("GitHub access token not found.")
+    }
 }
