@@ -1,11 +1,11 @@
 import Foundation
 import AnalyticsGenTools
 
-struct TemplateConfiguration: Decodable {
+struct TemplateConfiguration: Decodable, Equatable {
 
     // MARK: - Nested Types
 
-    struct Template: Decodable {
+    struct Template: Decodable, Equatable {
 
         // MARK: - Instance Properties
 

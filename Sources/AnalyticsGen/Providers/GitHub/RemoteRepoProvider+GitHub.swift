@@ -68,6 +68,9 @@ private extension GitHubReferenceConfiguration {
 
         case .branch(let name):
             return "heads/\(name)"
+
+        case .finders:
+            fatalError("Логика резолва в следующей задаче")
         }
     }
 }

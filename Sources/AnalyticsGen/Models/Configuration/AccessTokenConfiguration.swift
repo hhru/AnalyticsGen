@@ -1,6 +1,6 @@
 import Foundation
 
-struct AccessTokenConfiguration: Decodable {
+struct AccessTokenConfiguration: Decodable, Equatable {
 
     // MARK: - Nested Types
 
@@ -11,7 +11,7 @@ struct AccessTokenConfiguration: Decodable {
 
     // MARK: -
 
-    struct KeychainParameters: Decodable {
+    struct KeychainParameters: Decodable, Equatable {
 
         // MARK: - Instance Properties
 
@@ -37,5 +37,11 @@ struct AccessTokenConfiguration: Decodable {
             self.environmentVariable = nil
             self.keychainParameters = nil
         }
+    }
+
+    init(value: String? = nil, environmentVariable: String?, keychainParameters: KeychainParameters?) {
+        self.value = value
+        self.environmentVariable = environmentVariable
+        self.keychainParameters = keychainParameters
     }
 }

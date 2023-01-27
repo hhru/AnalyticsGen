@@ -1,6 +1,6 @@
 import Foundation
 
-struct GitHubSourceConfiguration: Decodable {
+struct GitHubSourceConfiguration: Decodable, Equatable {
 
     // MARK: - Instance Properties
 
