@@ -24,7 +24,10 @@ extension FinderSourceConfiguration {
         case .git(let type):
             switch type {
             case .currentBranchName:
-                return try condition.extract(from: try shell("git rev-parse --abbrev-ref HEAD"))
+                let currentBranch = try shell("git rev-parse --abbrev-ref HEAD")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+
+                return try condition.extract(from: currentBranch)
             }
         }
     }
