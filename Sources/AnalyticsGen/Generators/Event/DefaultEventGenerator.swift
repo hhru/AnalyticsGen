@@ -4,16 +4,16 @@ import Yams
 import AnalyticsGenTools
 import JSONSchema
 import DictionaryCoder
-import KeychainAccess
 
 final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - Instance Properties
 
-    let fileProvider: FileProvider
-    let remoteRepoProvider: RemoteRepoProvider
-    let templateRenderer: TemplateRenderer
-    let dictionaryDecoder: DictionaryDecoder
+    private let fileProvider: FileProvider
+    private let remoteRepoProvider: RemoteRepoProvider
+    private let templateRenderer: TemplateRenderer
+    private let dictionaryDecoder: DictionaryDecoder
+    private let remoteRepoReferenceFinder: RemoteRepoReferenceFinder
 
     // MARK: - Initializers
 
@@ -21,12 +21,14 @@ final class DefaultEventGenerator: EventGenerator {
         fileProvider: FileProvider,
         remoteRepoProvider: RemoteRepoProvider,
         templateRenderer: TemplateRenderer,
-        dictionaryDecoder: DictionaryDecoder
+        dictionaryDecoder: DictionaryDecoder,
+        remoteRepoReferenceFinder: RemoteRepoReferenceFinder
     ) {
         self.fileProvider = fileProvider
         self.remoteRepoProvider = remoteRepoProvider
         self.templateRenderer = templateRenderer
         self.dictionaryDecoder = dictionaryDecoder
+        self.remoteRepoReferenceFinder = remoteRepoReferenceFinder
     }
 
     // MARK: - Instance Methods
@@ -122,6 +124,8 @@ final class DefaultEventGenerator: EventGenerator {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
+
+        print("\n(\(configuration.name)) Starting code generation... 🚀\n")
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
         let platform = configuration.platform ?? .androidIOS
@@ -234,6 +238,51 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
+    private func performFinders(
+        finderConfigurations: [GitHubReferenceFinderConfiguration],
+        gitHubConfiguration: GitHubSourceConfiguration,
+        generatedConfiguration: GeneratedConfiguration,
+        force: Bool
+    ) throws -> Promise<EventGenerationResult> {
+        Log.info(
+            String(
+                format: "(%@) Searching remote repo reference via %d finder(s)...",
+                generatedConfiguration.name,
+                finderConfigurations.count
+            )
+        )
+
+        return try remoteRepoReferenceFinder
+            .findReference(
+                configurations: finderConfigurations,
+                gitHubConfiguration: gitHubConfiguration
+            )
+            .map { gitReferenceType in
+                if let gitReferenceType {
+                    return gitReferenceType
+                } else {
+                    throw MessageError("Remote repo reference not found.")
+                }
+            }
+            .get { (gitReferenceType: GitReferenceType) in
+                Log.info(
+                    String(
+                        format: "(%@) Found remote repo reference '%@'.",
+                        generatedConfiguration.name,
+                        gitReferenceType.rawValue
+                    )
+                )
+            }
+            .then { gitReferenceType in
+                self.generateFromRemoteRepo(
+                    gitHubConfiguration: gitHubConfiguration,
+                    ref: gitReferenceType.rawValue,
+                    configuration: generatedConfiguration,
+                    force: force
+                )
+            }
+    }
+
     private func generate(
         configuration: GeneratedConfiguration,
         force: Bool
@@ -261,8 +310,13 @@ final class DefaultEventGenerator: EventGenerator {
                     force: force
                 )
 
-            case .finders(_):
-                fatalError()
+            case .finders(let finders):
+                return try performFinders(
+                    finderConfigurations: finders,
+                    gitHubConfiguration: gitHubConfiguration,
+                    generatedConfiguration: configuration,
+                    force: force
+                )
             }
         }
     }
@@ -330,28 +384,4 @@ private extension String {
     static let swiftExtension = ".swift"
     static let lockFilePath = ".analyticsGen.lock"
     static let rootPath = "./"
-}
-
-// MARK: -
-
-private extension AccessTokenConfiguration {
-
-    // MARK: - Instance Methods
-
-    func resolveToken() throws -> String {
-        if let value = value {
-            return value
-        } else if let environmentVariable = environmentVariable,
-                  let token = ProcessInfo.processInfo.environment[environmentVariable] {
-            return token
-        } else if let parameters = keychainParameters {
-            let keychain = Keychain(service: parameters.service)
-
-            if let token = try keychain.getString(parameters.key) {
-                return token
-            }
-        }
-
-        throw MessageError("GitHub access token not found.")
-    }
 }

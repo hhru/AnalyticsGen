@@ -1,6 +1,7 @@
 import Foundation
 import SwiftCLI
 import PromiseKit
+import AnalyticsGenTools
 
 final class GenerateCommand: AsyncExecutableCommand {
 
@@ -26,6 +27,11 @@ final class GenerateCommand: AsyncExecutableCommand {
             """
     )
 
+    let debug = Flag(
+        "--debug",
+        description: "Enable debug logging."
+    )
+
     let generator: EventGenerator
 
     // MARK: - Initializers
@@ -38,6 +44,8 @@ final class GenerateCommand: AsyncExecutableCommand {
 
     func executeAsyncAndExit() throws {
         let configurationPath = self.configurationPath.value ?? .defaultConfigurationPath
+
+        Log.isDebugLoggingEnabled = debug.value
 
         firstly {
             generator.generate(configurationPath: configurationPath, force: force.value)

@@ -1,15 +1,15 @@
 import Foundation
 
 struct FinderSourceConfiguration: Decodable, Equatable {
+
     enum SourceType: Equatable {
-        struct File: Decodable, Equatable {
-            let path: String
-            let variable: String
+        enum GitType: String, Decodable, Equatable {
+            case currentBranchName = "current_branch_name"
         }
 
         case environment(variables: [String])
-        case file(files: [File])
-        case git
+        case file(paths: [String])
+        case git(type: GitType)
     }
 
     let type: SourceType
@@ -18,12 +18,12 @@ struct FinderSourceConfiguration: Decodable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        if let environment = try? container.decode(EnvironmentVariables.self, forKey: .type) {
-            self.type = .environment(variables: environment.env)
-        } else if let files = try? container.decode(Files.self, forKey: .type) {
-            self.type = .file(files: files.file)
-        } else if let rawType = try? container.decode(String.self, forKey: .type), rawType == "git" {
-            self.type = .git
+        if let variables = try container.decodeIfPresent([String].self, forKey: .env) {
+            self.type = .environment(variables: variables)
+        } else if let paths = try container.decodeIfPresent([String].self, forKey: .file) {
+            self.type = .file(paths: paths)
+        } else if let gitType = try container.decodeIfPresent(SourceType.GitType.self, forKey: .git) {
+            self.type = .git(type: gitType)
         } else {
             throw DecodingError.typeMismatch(
                 SourceType.self,
@@ -46,16 +46,7 @@ struct FinderSourceConfiguration: Decodable, Equatable {
 
 extension FinderSourceConfiguration {
 
-    private struct EnvironmentVariables: Decodable {
-        let env: [String]
-    }
-
-    private struct Files: Decodable {
-        let file: [SourceType.File]
-    }
-
     private enum CodingKeys: String, CodingKey {
-        case type
         case env
         case file
         case git

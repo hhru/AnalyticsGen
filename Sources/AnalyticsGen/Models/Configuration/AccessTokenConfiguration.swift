@@ -1,4 +1,6 @@
 import Foundation
+import KeychainAccess
+import AnalyticsGenTools
 
 struct AccessTokenConfiguration: Decodable, Equatable {
 
@@ -43,5 +45,29 @@ struct AccessTokenConfiguration: Decodable, Equatable {
         self.value = value
         self.environmentVariable = environmentVariable
         self.keychainParameters = keychainParameters
+    }
+}
+
+// MARK: -
+
+extension AccessTokenConfiguration {
+
+    // MARK: - Instance Methods
+
+    func resolveToken() throws -> String {
+        if let value = value {
+            return value
+        } else if let environmentVariable = environmentVariable,
+                  let token = ProcessInfo.processInfo.environment[environmentVariable] {
+            return token
+        } else if let parameters = keychainParameters {
+            let keychain = Keychain(service: parameters.service)
+
+            if let token = try keychain.getString(parameters.key) {
+                return token
+            }
+        }
+
+        throw MessageError("GitHub access token not found.")
     }
 }

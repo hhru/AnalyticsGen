@@ -3,6 +3,7 @@ import Foundation
 enum FinderConditionConfiguration: Decodable, Equatable {
     case regex(String)
     case const(String)
+    case notEqual(String)
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -15,6 +16,9 @@ enum FinderConditionConfiguration: Decodable, Equatable {
 
         case .const:
             self = .const(value)
+
+        case .notEqual:
+            self = .notEqual(value)
         }
     }
 }
@@ -29,5 +33,6 @@ extension FinderConditionConfiguration {
     private enum RawType: String, Decodable {
         case regex
         case const
+        case notEqual = "not_equal"
     }
 }

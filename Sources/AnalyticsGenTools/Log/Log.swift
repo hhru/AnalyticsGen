@@ -10,6 +10,8 @@ public enum Log {
 
     public private(set) static var printers: [LogPrinter] = [LogConsolePrinter.shared]
 
+    public static var isDebugLoggingEnabled = false
+
     public static var dateFormat: String {
         get { Log.dateFormatter.dateFormat }
         set { Log.dateFormatter.dateFormat = newValue }
@@ -76,6 +78,22 @@ public enum Log {
             )
         }
     }
+
+    public static func debug(
+        _ text: @autoclosure () -> String,
+        from sender: @autoclosure () -> Any? = nil,
+        date: @autoclosure () -> Date = Date()
+    ) {
+        guard isDebugLoggingEnabled else {
+            return
+        }
+
+        printers.forEach {
+            $0.print(
+                info: line(layer: .debug, text: text(), sender: sender(), date: date())
+            )
+        }
+    }
 }
 
 // MARK: -
@@ -88,6 +106,7 @@ private extension String {
     static let success = "[SUCCESS]"
     static let fail = "[FAIL]"
     static let info = "[INFO]"
+    static let debug = "[DEBUG]"
 }
 
 // MARK: -

@@ -12,13 +12,15 @@ struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
         switch rawType {
         case .matchedTag:
             self.type = .matchedTag(
-                source: try container.decode(forKey: .source)
+                source: try container.decode(forKey: .source),
+                branchRegex: try container.decode(forKey: .branchRegex)
             )
 
         case .lastMerged:
             self.type = .lastMerged(
                 branch: try container.decode(forKey: .branch),
-                condition: try container.decode(forKey: .condition)
+                mergeCommitCount: try container.decode(forKey: .mergeCommitCount),
+                branchRegex: try container.decode(forKey: .branchRegex)
             )
 
         case .lastTag:
@@ -47,7 +49,8 @@ extension GitHubReferenceFinderConfiguration {
         case type
         case source
         case branch
-        case condition
+        case mergeCommitCount = "merge_commit_count"
+        case branchRegex = "branch_regex"
         case skip
     }
 
