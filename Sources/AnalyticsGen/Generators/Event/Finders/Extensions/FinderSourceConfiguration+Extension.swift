@@ -15,6 +15,7 @@ extension FinderSourceConfiguration {
         case .file(let paths):
             return try paths
                 .lazy
+                .filter { FileManager.default.fileExists(atPath: $0) }
                 .map { URL(fileURLWithPath: $0) }
                 .map { try String(contentsOf: $0, encoding: .utf8) }
                 .compactMap { try condition.extract(from: $0) }
@@ -54,7 +55,7 @@ private extension FinderConditionConfiguration {
                 return nil
             }
 
-        case .const(let string):
+        case .equal(let string):
             return value == string ? value : nil
 
         case .notEqual(let string):

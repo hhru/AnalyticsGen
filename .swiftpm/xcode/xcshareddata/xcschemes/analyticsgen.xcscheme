@@ -81,14 +81,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--debug"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "GIT_BRANCH"
-            value = "PORTFOLIO-20161"
-            isEnabled = "YES">
+            value = "develop"
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

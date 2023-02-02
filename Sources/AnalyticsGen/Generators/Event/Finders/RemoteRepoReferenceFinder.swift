@@ -26,7 +26,7 @@ final class RemoteRepoReferenceFinder {
         gitHubConfiguration: GitHubSourceConfiguration,
         tags: [String]
     ) throws -> GitReferenceType? {
-        if try configuration.skipCondition?.isSatisfyCondition() == true {
+        guard try configuration.runCondition?.isSatisfyCondition() ?? true else {
             return nil
         }
 
@@ -62,7 +62,7 @@ final class RemoteRepoReferenceFinder {
 
         case .lastTag:
             return tags
-                .last
+                .first
                 .map { .tag(name: $0) }
 
         case .lastCommit(let branch):

@@ -3,7 +3,7 @@ import Foundation
 struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
 
     let type: GitHubReferenceFinderTypeConfiguration
-    let skipCondition: FinderSourceConfiguration?
+    let runCondition: FinderSourceConfiguration?
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -32,14 +32,9 @@ struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
             )
         }
 
-        self.skipCondition = try container
-            .decodeIfPresent(Skip.self, forKey: .skip)?
+        self.runCondition = try container
+            .decodeIfPresent(RunCondition.self, forKey: .runCondition)?
             .source
-    }
-
-    init(type: GitHubReferenceFinderTypeConfiguration, skipCondition: FinderSourceConfiguration? = nil) {
-        self.type = type
-        self.skipCondition = skipCondition
     }
 }
 
@@ -51,7 +46,7 @@ extension GitHubReferenceFinderConfiguration {
         case branch
         case mergeCommitCount = "merge_commit_count"
         case branchRegex = "branch_regex"
-        case skip
+        case runCondition = "run_condition"
     }
 
     private enum RawType: String, Decodable {
@@ -61,7 +56,7 @@ extension GitHubReferenceFinderConfiguration {
         case lastCommit = "last_commit"
     }
 
-    private struct Skip: Decodable {
+    private struct RunCondition: Decodable {
         let source: FinderSourceConfiguration
     }
 }

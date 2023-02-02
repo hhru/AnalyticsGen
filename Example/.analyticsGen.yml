@@ -14,13 +14,13 @@ source:
               value: ^PORTFOLIO-\d+$
           branch_regex: PORTFOLIO-\d+
         - type: last_merged
-          skip:
+          run_condition:
             source:
               env:
                 - GIT_BRANCH
                 - GIT_MERGE_BRANCH
               condition:
-                type: not_equal
+                type: equal
                 value: develop
           branch: develop
           merge_commit_count: 100
