@@ -1,16 +1,4 @@
 HR-Mobile:
-  ref: refs/tags/analyticsgen/PORTFOLIO-19196
-  node_id: MDM6UmVmMjUxMjk2MzMwOnJlZnMvdGFncy9hbmFseXRpY3NnZW4vUE9SVEZPTElPLTE5MTk2
-  url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/refs/tags/analyticsgen/PORTFOLIO-19196
-  object:
-    sha: ed59a36a2c21e87b6ad1923ddc0d14e48412aacf
-    type: commit
-    url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/commits/ed59a36a2c21e87b6ad1923ddc0d14e48412aacf
+  sha: 0742a68de9d8d09b4d2b91c68dfe7d44dc1e3f98
 Applicant:
-  ref: refs/tags/analyticsgen/PORTFOLIO-19196
-  node_id: MDM6UmVmMjUxMjk2MzMwOnJlZnMvdGFncy9hbmFseXRpY3NnZW4vUE9SVEZPTElPLTE5MTk2
-  url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/refs/tags/analyticsgen/PORTFOLIO-19196
-  object:
-    sha: ed59a36a2c21e87b6ad1923ddc0d14e48412aacf
-    type: commit
-    url: https://api.github.com/repos/hhru/hh-mobile-analytics/git/commits/ed59a36a2c21e87b6ad1923ddc0d14e48412aacf
+  sha: 0742a68de9d8d09b4d2b91c68dfe7d44dc1e3f98

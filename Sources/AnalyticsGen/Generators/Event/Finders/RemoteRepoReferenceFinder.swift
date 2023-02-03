@@ -73,7 +73,7 @@ final class RemoteRepoReferenceFinder {
                     branch: branch,
                     token: try gitHubConfiguration.accessToken.resolveToken()
                 )
-                .map { .commit(id: $0) }
+                .map { .commit(sha: $0) }
                 .wait()
         }
     }
@@ -89,7 +89,7 @@ final class RemoteRepoReferenceFinder {
                 count: 100,
                 token: try gitHubConfiguration.accessToken.resolveToken()
             )
-            .map { tags in
+            .map(on: .global()) { tags in
                 try configurations
                     .enumerated()
                     .mapFirst { index, configuration in

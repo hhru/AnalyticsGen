@@ -149,7 +149,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     private func shouldGenerate(
         configuration: GeneratedConfiguration,
-        remoteGitReference: GitReference
+        remoteReferenceSHA: String
     ) throws -> Bool {
         let hasGeneratedFiles = try? !FileManager
             .default
@@ -157,34 +157,36 @@ final class DefaultEventGenerator: EventGenerator {
             .filter { $0.lowercased().hasSuffix(.swiftExtension) }
             .isEmpty
 
-        let lockReferenceDict = try fileProvider.readFileIfExists(
+        let lockReferenceDict = try? fileProvider.readFileIfExists(
             at: .lockFilePath,
-            type: [String: GitReference].self
+            type: [String: LockReference].self
         )
 
-        guard hasGeneratedFiles == true, let lockGitReference = lockReferenceDict?[configuration.name] else {
+        guard hasGeneratedFiles == true, let lockReference = lockReferenceDict?[configuration.name] else {
             return true
         }
 
-        return lockGitReference != remoteGitReference
+        return lockReference.sha != remoteReferenceSHA
     }
 
-    private func saveLockfile(configurationName: String, remoteGitReference: GitReference) throws {
-        var lockGitRerences = try self.fileProvider.readFileIfExists(
-            at: .lockFilePath,
-            type: [String: GitReference].self
+    private func saveLockfile(configurationName: String, remoteReferenceSHA: String) throws {
+        var lockGitRerences = (
+            try? fileProvider.readFileIfExists(
+                at: .lockFilePath,
+                type: [String: LockReference].self
+            )
         ) ?? [:]
 
-        lockGitRerences[configurationName] = remoteGitReference
+        lockGitRerences[configurationName] = LockReference(sha: remoteReferenceSHA)
 
-        try self.fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
+        try fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
     }
 
     private func generateFromRemoteRepo(
         gitHubConfiguration: GitHubSourceConfiguration,
         ref: String,
         configuration: GeneratedConfiguration,
-        remoteGitReference: GitReference
+        remoteReferenceSHA: String
     ) -> Promise<EventGenerationResult> {
         firstly {
             remoteRepoProvider.fetchRepo(
@@ -200,37 +202,54 @@ final class DefaultEventGenerator: EventGenerator {
                 schemasPath: gitHubConfiguration.path.map { repoPathURL.appendingPathComponent($0) } ?? repoPathURL
             )
 
-            try self.saveLockfile(configurationName: configuration.name, remoteGitReference: remoteGitReference)
+            try self.saveLockfile(configurationName: configuration.name, remoteReferenceSHA: remoteReferenceSHA)
 
             return .success
         }
     }
 
+    private func fetchRemoteReferenceSHA(
+        gitHubConfiguration: GitHubSourceConfiguration,
+        gitReferenceType: GitReferenceType
+    ) -> Promise<String> {
+        switch gitReferenceType {
+        case .tag, .branch:
+            return firstly {
+                remoteRepoProvider.fetchReference(
+                    owner: gitHubConfiguration.owner,
+                    repo: gitHubConfiguration.repo,
+                    ref: gitReferenceType.rawValue,
+                    token: try gitHubConfiguration.accessToken.resolveToken()
+                )
+            }.map { reference in
+                reference.object.sha
+            }
+
+        case .commit(let sha):
+            return .value(sha)
+        }
+    }
+
     private func generateFromRemoteRepo(
         gitHubConfiguration: GitHubSourceConfiguration,
-        ref: String,
+        gitReferenceType: GitReferenceType,
         configuration: GeneratedConfiguration,
         force: Bool
     ) -> Promise<EventGenerationResult> {
         firstly {
-            remoteRepoProvider.fetchReference(
-                owner: gitHubConfiguration.owner,
-                repo: gitHubConfiguration.repo,
-                ref: ref,
-                token: try gitHubConfiguration.accessToken.resolveToken()
-            )
-        }.then { remoteGitReference in
+            fetchRemoteReferenceSHA(gitHubConfiguration: gitHubConfiguration, gitReferenceType: gitReferenceType)
+        }.then { remoteReferenceSHA in
             let shouldPerformGeneration = try self.shouldGenerate(
                 configuration: configuration,
-                remoteGitReference: remoteGitReference
+                remoteReferenceSHA: remoteReferenceSHA
             )
 
             if shouldPerformGeneration || force {
                 return self.generateFromRemoteRepo(
                     gitHubConfiguration: gitHubConfiguration,
-                    ref: ref,
+                    ref: gitReferenceType.rawValue,
                     configuration: configuration,
-                    remoteGitReference: remoteGitReference
+                    remoteReferenceSHA: remoteReferenceSHA
                 )
             } else {
                 return .value(.upToDate)
@@ -276,7 +295,7 @@ final class DefaultEventGenerator: EventGenerator {
             .then { gitReferenceType in
                 self.generateFromRemoteRepo(
                     gitHubConfiguration: gitHubConfiguration,
-                    ref: gitReferenceType.rawValue,
+                    gitReferenceType: gitReferenceType,
                     configuration: generatedConfiguration,
                     force: force
                 )
@@ -297,7 +316,7 @@ final class DefaultEventGenerator: EventGenerator {
             case .tag(let name):
                 return generateFromRemoteRepo(
                     gitHubConfiguration: gitHubConfiguration,
-                    ref: "tags/\(name)",
+                    gitReferenceType: .tag(name: name),
                     configuration: configuration,
                     force: force
                 )
@@ -305,7 +324,7 @@ final class DefaultEventGenerator: EventGenerator {
             case .branch(let name):
                 return generateFromRemoteRepo(
                     gitHubConfiguration: gitHubConfiguration,
-                    ref: "heads/\(name)",
+                    gitReferenceType: .branch(name: name),
                     configuration: configuration,
                     force: force
                 )
@@ -330,7 +349,7 @@ final class DefaultEventGenerator: EventGenerator {
             configuration.configurations.reversed()
         }.get { configurations in
             Log.info("Found \(configurations.count) configurations\n")
-        }.then { configurations in
+        }.then(on: .global()) { configurations in
             when(fulfilled: try configurations.map { try self.generate(configuration: $0, force: force) })
         }.map { results in
             results.contains(.success) ? .success : .upToDate
