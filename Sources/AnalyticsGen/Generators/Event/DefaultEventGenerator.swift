@@ -125,7 +125,7 @@ final class DefaultEventGenerator: EventGenerator {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
 
-        print("\n(\(configuration.name)) Starting code generation... 🚀\n")
+        Log.info("(\(configuration.name)) Starting code generation... 🚀")
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
         let platform = configuration.platform ?? .androidIOS
@@ -135,7 +135,7 @@ final class DefaultEventGenerator: EventGenerator {
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
-                Log.info("(\(configuration.name)) Reading schema: \(url.lastPathComponent)")
+                Log.debug("(\(configuration.name)) Reading schema: \(url.lastPathComponent)")
                 let event: Event = try fileProvider.readFile(at: url.path)
                 return (event, url)
             }
