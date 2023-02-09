@@ -10,6 +10,7 @@ enum Dependencies {
 
     static let gitHubRemoteRepoProvider: RemoteRepoProvider = GitHubRemoteRepoProvider(httpService: httpService)
     static let yamlFileProvider: FileProvider = YAMLFileProvider()
+    static let remoteRepoReferenceFinder = RemoteRepoReferenceFinder(remoteRepoProvider: gitHubRemoteRepoProvider)
 
     static let templateContextCoder: TemplateContextCoder = DefaultTemplateContextCoder()
 
@@ -28,6 +29,7 @@ enum Dependencies {
         fileProvider: yamlFileProvider,
         remoteRepoProvider: gitHubRemoteRepoProvider,
         templateRenderer: templateRenderer,
-        dictionaryDecoder: DictionaryDecoder()
+        dictionaryDecoder: DictionaryDecoder(),
+        remoteRepoReferenceFinder: remoteRepoReferenceFinder
     )
 }

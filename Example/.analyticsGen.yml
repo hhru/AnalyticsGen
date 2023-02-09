@@ -6,42 +6,40 @@ source:
       finders:
         - type: matched_tag
           source:
-            type:
+            env:
+              - GIT_BRANCH
+              - GIT_MERGE_BRANCH
+            condition:
+              type: regex
+              value: ^PORTFOLIO-\d+$
+          branch_regex: PORTFOLIO-\d+
+        - type: last_merged
+          run_condition:
+            source:
               env:
                 - GIT_BRANCH
                 - GIT_MERGE_BRANCH
-            condition:
-              type: regex
-              value: ^PORTFOLIO-\d+$
-        - type: last_merged
-          skip:
-            source:
-              type:
-                env:
-                  - GIT_BRANCH
-                  - GIT_MERGE_BRANCH
               condition:
-                type: const
+                type: equal
                 value: develop
           branch: develop
-          condition:
-            type: regex
-            value: ^PORTFOLIO-\d+$
+          merge_commit_count: 100
+          branch_regex: PORTFOLIO-\d+
         - type: matched_tag
           source:
-            type:
-              file:
-                - path: Configurations/Personal.xcconfig
-                  variable: ANALYTICS_REF
+            file:
+              - Configurations/Personal.xcconfig
+            condition:
+              type: regex
+              value: ANALYTICS_REF = (PORTFOLIO-\d+)
+          branch_regex: PORTFOLIO-\d+
+        - type: matched_tag
+          source:
+            git: current_branch_name
             condition:
               type: regex
               value: ^PORTFOLIO-\d+$
-        - type: matched_tag
-          source:
-            type: git
-            condition:
-              type: regex
-              value: ^PORTFOLIO-\d+$
+          branch_regex: PORTFOLIO-\d+
         - type: last_tag
         - type: last_commit
           branch: master
@@ -54,14 +52,8 @@ platform: iOS
 targets:
   - name: Applicant
     path: schemas/applicant
-    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/Applicant
-    ref:
-      tag: 2.0
   - name: HR-Mobile
     path: schemas/hr-mobile
-    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen/HR-Mobile
-    ref:
-      tag: 2.0
 template:
   internal:
     options:
