@@ -92,7 +92,7 @@ import Analytics
     {{ accessModifier }} let oneOfCategory: Category
 
     {{ accessModifier }} var category: String {
-            oneOfCategory.rawValue
+        oneOfCategory.rawValue
     }
         {% else %}
             {% if category.description %}
