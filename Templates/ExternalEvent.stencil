@@ -109,12 +109,12 @@ import Analytics
         action: String,
         {% endif %}
         {% if category.oneOf %}
-        category: Category
+        category: Category,
         {% endif %}
         {% if label.oneOf %}
-        label: Label,
+        label: Label
         {% else %}
-        label: String,
+        label: String
         {% endif %}
     ) {
         {% if action.oneOf %}
