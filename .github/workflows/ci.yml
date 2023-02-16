@@ -24,15 +24,3 @@ jobs:
         run: set -o pipefail
       - name: Build
         run: make build
-
-  linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Swift
-        uses: swift-actions/setup-swift@v1
-      - name: Preparation
-        run: set -o pipefail
-      - name: Build
-        run: make build
