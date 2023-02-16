@@ -51,6 +51,21 @@ final class DefaultEventGenerator: EventGenerator {
         return "InternalEvent"
     }
 
+    private func resolveExternalEventCategory(event: ExternalEvent) -> ExternalEventContext.Category {
+        switch event.category {
+        case .anonymous, .applicant, .employer:
+            return .init(value: event.category.rawValue, oneOf: nil)
+        case .anonymousApplicant:
+            return .init(
+                value: nil,
+                oneOf: [
+                    OneOf(name: ExternalEventCategory.applicant.rawValue, description: nil),
+                    OneOf(name: ExternalEventCategory.anonymous.rawValue, description: nil)
+                ]
+            )
+        }
+    }
+
     private func generate(
         parameters: GenerationParameters,
         event: Event,
@@ -99,7 +114,7 @@ final class DefaultEventGenerator: EventGenerator {
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
-                    category: event.category,
+                    category: resolveExternalEventCategory(event: externalEvent),
                     structName: filename.appending("ExternalEvent"),
                     action: ExternalEventContext.Action(
                         description: externalEvent.action.description,

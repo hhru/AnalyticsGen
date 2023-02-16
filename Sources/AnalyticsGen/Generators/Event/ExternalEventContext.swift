@@ -23,12 +23,20 @@ struct ExternalEventContext: Encodable {
         let oneOf: [OneOf]?
     }
 
+    // MARK: -
+
+    struct Category: Encodable {
+
+        let value: String?
+        let oneOf: [OneOf]?
+    }
+
     // MARK: - Instance Properties
 
     let deprecated: Bool
     let name: String
     let description: String?
-    let category: String
+    let category: Category
     let structName: String
     let action: Action
     let label: Label?

@@ -15,14 +15,25 @@ import Analytics
 
 {% if description %}
  - **Описание**: {{ description }}
-{% endif %} 
- - **Категория**: {{ category }}
+{% endif %}
  */
 {{ accessModifier }} struct {{ structName }}: ExternalEvent {
 
     {% if label.oneOf %}
     {{ accessModifier }} enum Label: String {
         {% for oneOf in label.oneOf %}
+        /// {{ oneOf.description }}
+        case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+
+    {% if category.oneOf %}
+    {{ accessModifier }} enum Category: String {
+        {% for oneOf in category.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
@@ -76,22 +87,43 @@ import Analytics
         {% endif %}
     {% endif %}
 
+    {% if category %}
+        {% if category.oneOf %}
+    {{ accessModifier }} let oneOfCategory: Category
+
+    {{ accessModifier }} var category: String {
+            oneOfCategory.rawValue
+    }
+        {% else %}
+            {% if category.description %}
+    /// {{ category.description }}
+            {% endif %}
+    {{ accessModifier }} let category = "{{ category.value }}"
+        {% endif %}
+    {% endif %}
+
     {{ accessModifier }} init(
         {% if action.oneOf %}
         action: Action,
         {% elif not action.value %}
         action: String,
         {% endif %}
+        {% if category.oneOf %}
+        category: Category
+        {% endif %}
         {% if label.oneOf %}
-        label: Label
+        label: Label,
         {% else %}
-        label: String
+        label: String,
         {% endif %}
     ) {
         {% if action.oneOf %}
         self.oneOfAction = action
         {% elif not action.value %}
         self.action = action
+        {% endif %}
+        {% if category.oneOf %}
+        self.category = category
         {% endif %}
         {% if label.oneOf%}
         self.oneOfLabel = label
