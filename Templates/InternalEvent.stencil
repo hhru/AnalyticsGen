@@ -21,8 +21,7 @@ import Analytics
  - **Эксперимент**: [{{ experiment.description }}]({{ experiment.url }})
 {% endif %}
  */
-{{ accessModifier }} struct {{ structName }}:
-    {{ protocols }} {
+{{ accessModifier }} struct {{ structName }}: {{ protocol }} {
 
     {{ accessModifier }} enum CodingKeys: String, CodingKey {
         {% for parameter in parameters %}

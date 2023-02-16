@@ -43,15 +43,12 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func resolveInternalEventProtocols(event: InternalEvent) -> String {
-        let indent = "    "
-        var protocols = ["ParametrizedInternalAnalyticsEvent", "SlashAnalyticsEvent"]
-
+    private func resolveInternalEventProtocol(event: InternalEvent) -> String {
         if event.knownEventName == .screenShown {
-            protocols.append("ScreenAnalyticsKeyContainable")
+            return "ScreenShownEvent"
         }
 
-        return protocols.joined(separator: ",\n\(indent)")
+        return "InternalEvent")
     }
 
     private func generate(
@@ -76,7 +73,7 @@ final class DefaultEventGenerator: EventGenerator {
                         InternalEventContext.Experiment(description: $0.description, url: $0.url.absoluteString)
                     },
                     structName: filename.appending("Event"),
-                    protocols: resolveInternalEventProtocols(event: internalEvent),
+                    protocol: resolveInternalEventProtocol(event: internalEvent),
                     parameters: internalEvent.parameters.nonEmpty?.map { parameter in
                         InternalEventContext.Parameter(
                             name: parameter.name,

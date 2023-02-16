@@ -18,7 +18,7 @@ import Analytics
 {% endif %} 
  - **Категория**: {{ category }}
  */
-{{ accessModifier }} struct {{ structName }}: UserCategoryEvent {
+{{ accessModifier }} struct {{ structName }}: ExternalEvent {
 
     {% if label.oneOf %}
     {{ accessModifier }} enum Label: String {
@@ -76,8 +76,6 @@ import Analytics
         {% endif %}
     {% endif %}
 
-    {{ accessModifier }} let isLoggedIn: Bool
-
     {{ accessModifier }} init(
         {% if action.oneOf %}
         action: Action,
@@ -85,11 +83,10 @@ import Analytics
         action: String,
         {% endif %}
         {% if label.oneOf %}
-        label: Label,
-        {% elif label %}
-        label: String,
+        label: Label
+        {% else %}
+        label: String
         {% endif %}
-        isLoggedIn: Bool
     ) {
         {% if action.oneOf %}
         self.oneOfAction = action
@@ -98,9 +95,8 @@ import Analytics
         {% endif %}
         {% if label.oneOf%}
         self.oneOfLabel = label
-        {% elif label %}
+        {% else %}
         self.label = label
         {% endif %}
-        self.isLoggedIn = isLoggedIn
     }
 }
