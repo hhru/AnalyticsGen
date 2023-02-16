@@ -123,7 +123,7 @@ import Analytics
         self.action = action
         {% endif %}
         {% if category.oneOf %}
-        self.category = category
+        self.oneOfCategory = category
         {% endif %}
         {% if label.oneOf%}
         self.oneOfLabel = label
