@@ -48,7 +48,7 @@ final class DefaultEventGenerator: EventGenerator {
             return "ScreenShownEvent"
         }
 
-        return "InternalEvent")
+        return "InternalEvent"
     }
 
     private func generate(
