@@ -83,7 +83,7 @@ import Analytics
         {% if label.description %}
     /// {{ label.description }}
         {% endif %}
-        {{ accessModifier }} let label = "{{ label.value }}"
+    {{ accessModifier }} let label = "{{ label.value }}"
         {% else %}
             {% if label.description %}
     /// {{ label.description }}
@@ -107,33 +107,17 @@ import Analytics
         {% endif %}
     {% endif %}
 
+    {% if initialisationParameters.count == 0 %}
+    {{ accessModifier }} init() { }
+    {% else %}
     {{ accessModifier }} init(
-        {% if action.oneOf %}
-        action: Action,
-        {% elif not action.value %}
-        action: String,
-        {% endif %}
-        {% if category.oneOf %}
-        category: Category,
-        {% endif %}
-        {% if label.oneOf %}
-        label: Label
-        {% elif not label.value %}
-        label: String
-        {% endif %}
+        {% for parameter in initialisationParameters %}
+        {{ parameter.name }}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
     ) {
-        {% if action.oneOf %}
-        self.oneOfAction = action
-        {% elif not action.value %}
-        self.action = action
-        {% endif %}
-        {% if category.oneOf %}
-        self.oneOfCategory = category
-        {% endif %}
-        {% if label.oneOf%}
-        self.oneOfLabel = label
-        {% elif not label.value %}
-        self.label = label
-        {% endif %}
+        {% for parameter in initialisationParameters %}
+        self.{{ parameter.name }} = {{ parameter.name }}
+        {% endfor %}
     }
+    {% endif %}
 }

@@ -32,6 +32,16 @@ struct ExternalEventContext: Encodable {
         let oneOf: [OneOf]?
     }
 
+    // MARK: -
+
+    struct Parameter: Encodable {
+
+        // MARK: - Instance Properties
+
+        let name: String
+        let type: String
+    }
+
     // MARK: - Instance Properties
 
     let deprecated: Bool
@@ -41,4 +51,5 @@ struct ExternalEventContext: Encodable {
     let structName: String
     let action: Action
     let label: Label?
+    let initialisationParameters: [Parameter]
 }

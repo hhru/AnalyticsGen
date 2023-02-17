@@ -66,6 +66,24 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
+    private func resolveExternalEventInitialisationParameters(event: ExternalEvent) -> [ExternalEventContext.Parameter] {
+        var parameters: [ExternalEventContext.Parameter] = []
+        if resolveExternalEventCategory(event: event).oneOf != nil {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfCategory", type: "Category"))
+        }
+        if event.action.oneOf != nil {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfAction", type: "Action"))
+        } else if event.action.value == nil {
+            parameters.append(ExternalEventContext.Parameter(name: "action", type: "String"))
+        }
+        if let labelOneOf = event.label?.oneOf, labelOneOf.count > 1 {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfLabel", type: "Label"))
+        } else if let label = event.label, label.oneOf == nil {
+            parameters.append(ExternalEventContext.Parameter(name: "label", type: "String"))
+        }
+        return parameters
+    }
+
     private func generate(
         parameters: GenerationParameters,
         event: Event,
@@ -134,7 +152,8 @@ final class DefaultEventGenerator: EventGenerator {
                             value: nil,
                             oneOf: label.oneOf
                         )
-                    }
+                    },
+                    initialisationParameters: resolveExternalEventInitialisationParameters(event: externalEvent)
                 )
             )
         }
