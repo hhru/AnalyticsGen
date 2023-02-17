@@ -51,6 +51,39 @@ final class DefaultEventGenerator: EventGenerator {
         return "InternalEvent"
     }
 
+    private func resolveExternalEventCategory(event: ExternalEvent) -> ExternalEventContext.Category {
+        switch event.category {
+        case .anonymous, .applicant, .employer:
+            return .init(value: event.category.rawValue, oneOf: nil)
+        case .anonymousApplicant:
+            return .init(
+                value: nil,
+                oneOf: [
+                    OneOf(name: ExternalEventCategory.applicant.rawValue, description: nil),
+                    OneOf(name: ExternalEventCategory.anonymous.rawValue, description: nil)
+                ]
+            )
+        }
+    }
+
+    private func resolveExternalEventInitialisationParameters(event: ExternalEvent) -> [ExternalEventContext.Parameter] {
+        var parameters: [ExternalEventContext.Parameter] = []
+        if resolveExternalEventCategory(event: event).oneOf != nil {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfCategory", type: "Category"))
+        }
+        if event.action.oneOf != nil {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfAction", type: "Action"))
+        } else if event.action.value == nil {
+            parameters.append(ExternalEventContext.Parameter(name: "action", type: "String"))
+        }
+        if let labelOneOf = event.label?.oneOf, labelOneOf.count > 1 {
+            parameters.append(ExternalEventContext.Parameter(name: "oneOfLabel", type: "Label"))
+        } else if let label = event.label, label.oneOf == nil {
+            parameters.append(ExternalEventContext.Parameter(name: "label", type: "String"))
+        }
+        return parameters
+    }
+
     private func generate(
         parameters: GenerationParameters,
         event: Event,
@@ -99,7 +132,7 @@ final class DefaultEventGenerator: EventGenerator {
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
-                    category: event.category,
+                    category: resolveExternalEventCategory(event: externalEvent),
                     structName: filename.appending("ExternalEvent"),
                     action: ExternalEventContext.Action(
                         description: externalEvent.action.description,
@@ -107,11 +140,20 @@ final class DefaultEventGenerator: EventGenerator {
                         oneOf: externalEvent.action.oneOf
                     ),
                     label: externalEvent.label.map { label in
-                        ExternalEventContext.Label(
+                        if let first = label.oneOf?.first, label.oneOf?.count == 1 {
+                            return ExternalEventContext.Label(
+                                description: label.description,
+                                value: first.name,
+                                oneOf: nil
+                            )
+                        }
+                        return ExternalEventContext.Label(
                             description: label.description,
+                            value: nil,
                             oneOf: label.oneOf
                         )
-                    }
+                    },
+                    initialisationParameters: resolveExternalEventInitialisationParameters(event: externalEvent)
                 )
             )
         }

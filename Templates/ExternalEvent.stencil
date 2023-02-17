@@ -15,14 +15,25 @@ import Analytics
 
 {% if description %}
  - **Описание**: {{ description }}
-{% endif %} 
- - **Категория**: {{ category }}
+{% endif %}
  */
 {{ accessModifier }} struct {{ structName }}: ExternalEvent {
 
     {% if label.oneOf %}
     {{ accessModifier }} enum Label: String {
         {% for oneOf in label.oneOf %}
+        /// {{ oneOf.description }}
+        case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
+        {% if not forloop.last %}
+
+        {% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+
+    {% if category.oneOf %}
+    {{ accessModifier }} enum Category: String {
+        {% for oneOf in category.oneOf %}
         /// {{ oneOf.description }}
         case {% call propertyName oneOf.name %} = "{{ oneOf.name }}"
         {% if not forloop.last %}
@@ -68,6 +79,11 @@ import Analytics
     {{ accessModifier }} var label: String {
         oneOfLabel.rawValue
     }
+        {% elif label.value %}
+        {% if label.description %}
+    /// {{ label.description }}
+        {% endif %}
+    {{ accessModifier }} let label = "{{ label.value }}"
         {% else %}
             {% if label.description %}
     /// {{ label.description }}
@@ -76,27 +92,32 @@ import Analytics
         {% endif %}
     {% endif %}
 
-    {{ accessModifier }} init(
-        {% if action.oneOf %}
-        action: Action,
-        {% elif not action.value %}
-        action: String,
-        {% endif %}
-        {% if label.oneOf %}
-        label: Label
-        {% else %}
-        label: String
-        {% endif %}
-    ) {
-        {% if action.oneOf %}
-        self.oneOfAction = action
-        {% elif not action.value %}
-        self.action = action
-        {% endif %}
-        {% if label.oneOf%}
-        self.oneOfLabel = label
-        {% else %}
-        self.label = label
-        {% endif %}
+    {% if category %}
+        {% if category.oneOf %}
+    {{ accessModifier }} let oneOfCategory: Category
+
+    {{ accessModifier }} var category: String {
+        oneOfCategory.rawValue
     }
+        {% else %}
+            {% if category.description %}
+    /// {{ category.description }}
+            {% endif %}
+    {{ accessModifier }} let category = "{{ category.value }}"
+        {% endif %}
+    {% endif %}
+
+    {% if initialisationParameters.count == 0 %}
+    {{ accessModifier }} init() { }
+    {% else %}
+    {{ accessModifier }} init(
+        {% for parameter in initialisationParameters %}
+        {{ parameter.name }}: {{ parameter.type }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ) {
+        {% for parameter in initialisationParameters %}
+        self.{{ parameter.name }} = {{ parameter.name }}
+        {% endfor %}
+    }
+    {% endif %}
 }
