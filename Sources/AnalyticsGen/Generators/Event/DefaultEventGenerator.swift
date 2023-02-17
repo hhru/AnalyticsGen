@@ -122,8 +122,16 @@ final class DefaultEventGenerator: EventGenerator {
                         oneOf: externalEvent.action.oneOf
                     ),
                     label: externalEvent.label.map { label in
-                        ExternalEventContext.Label(
+                        if let first = label.oneOf?.first, label.oneOf?.count == 1 {
+                            return ExternalEventContext.Label(
+                                description: label.description,
+                                value: first.name,
+                                oneOf: nil
+                            )
+                        }
+                        return ExternalEventContext.Label(
                             description: label.description,
+                            value: nil,
                             oneOf: label.oneOf
                         )
                     }

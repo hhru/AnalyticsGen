@@ -79,6 +79,11 @@ import Analytics
     {{ accessModifier }} var label: String {
         oneOfLabel.rawValue
     }
+        {% elif label.value %}
+        {% if label.description %}
+    /// {{ label.description }}
+        {% endif %}
+        {{ accessModifier }} let label = "{{ label.value }}"
         {% else %}
             {% if label.description %}
     /// {{ label.description }}
@@ -113,7 +118,7 @@ import Analytics
         {% endif %}
         {% if label.oneOf %}
         label: Label
-        {% else %}
+        {% elif not label.value %}
         label: String
         {% endif %}
     ) {
@@ -127,7 +132,7 @@ import Analytics
         {% endif %}
         {% if label.oneOf%}
         self.oneOfLabel = label
-        {% else %}
+        {% elif not label.value %}
         self.label = label
         {% endif %}
     }
