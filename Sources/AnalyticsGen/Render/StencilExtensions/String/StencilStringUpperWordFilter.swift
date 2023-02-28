@@ -10,15 +10,21 @@ final class StencilStringUpperWordFilter: StencilStringFilter {
 
     // MARK: - Instance Properties
 
-    let name = "upperWord"
+    let name = "uppercaseSuffix"
 
     // MARK: - Instance Methods
 
     func filter(string: String, withArguments arguments: [Any?]) throws -> String {
-        guard let word = arguments.first as? String else {
+        guard let suffix = arguments.first as? String else {
             return string
         }
 
-        return string.replacingOccurrences(of: word, with: word.uppercased(), options: .caseInsensitive)
+        guard string.hasSuffix(suffix) else {
+            return string
+        }
+
+        let uppercasedSuffix = string.suffix(suffix.count).uppercased()
+
+        return string.dropLast(suffix.count) + uppercasedSuffix
     }
 }
