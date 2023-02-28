@@ -1,5 +1,5 @@
 {% include "FileHeader.stencil" %}
-{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|replace:"Id","ID"|uppercaseSuffix:"json","Json" }}{% endmacro %}
+{% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords|replace:"Id","ID"|uppercaseSuffix:"json","Json","Hhid" }}{% endmacro %}
 {% macro enumName name %}{{ name|swiftIdentifier:"pretty"|escapeReservedKeywords|replace:"`Type`","EventType"|uppercasePrefix:"Hhtm" }}{% endmacro %}
 
 {% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
