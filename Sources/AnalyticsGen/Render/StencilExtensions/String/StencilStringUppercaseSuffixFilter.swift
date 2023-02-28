@@ -15,16 +15,16 @@ final class StencilStringUppercaseSuffixFilter: StencilStringFilter {
     // MARK: - Instance Methods
 
     func filter(string: String, withArguments arguments: [Any?]) throws -> String {
-        guard let suffix = arguments.first as? String else {
-            return string
-        }
+        arguments
+            .compactMap { $0 as? String }
+            .reduce(string) { string, suffix in
+                guard string.hasSuffix(suffix) else {
+                    return string
+                }
 
-        guard string.hasSuffix(suffix) else {
-            return string
-        }
+                let uppercasedSuffix = string.suffix(suffix.count).uppercased()
 
-        let uppercasedSuffix = string.suffix(suffix.count).uppercased()
-
-        return string.dropLast(suffix.count) + uppercasedSuffix
+                return string.dropLast(suffix.count) + uppercasedSuffix
+            }
     }
 }
