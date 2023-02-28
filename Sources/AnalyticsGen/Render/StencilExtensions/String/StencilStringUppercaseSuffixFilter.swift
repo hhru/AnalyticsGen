@@ -1,6 +1,6 @@
 import Foundation
 
-final class StencilStringUpperWordFilter: StencilStringFilter {
+final class StencilStringUppercaseSuffixFilter: StencilStringFilter {
 
     // MARK: - Nested Types
 
