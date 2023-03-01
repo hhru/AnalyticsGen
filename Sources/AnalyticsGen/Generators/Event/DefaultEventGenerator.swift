@@ -216,7 +216,10 @@ final class DefaultEventGenerator: EventGenerator {
             )
         ) ?? [:]
 
-        lockGitRerences[configurationName] = LockReference(sha: remoteReferenceSHA)
+        lockGitRerences[configurationName] = LockReference(
+            sha: remoteReferenceSHA,
+            version: analyticsGen.version ?? "0.0.0"
+        )
 
         try fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
     }
