@@ -15,6 +15,12 @@ final class DefaultEventGenerator: EventGenerator {
     private let dictionaryDecoder: DictionaryDecoder
     private let remoteRepoReferenceFinder: RemoteRepoReferenceFinder
 
+    // MARK: -
+
+    private var currentVersion: String {
+        analyticsGen.version ?? "0.0.0"
+    }
+
     // MARK: - Initializers
 
     init(
@@ -205,7 +211,12 @@ final class DefaultEventGenerator: EventGenerator {
             return true
         }
 
-        return lockReference.sha != remoteReferenceSHA
+        let remoteLockReference = LockReference(
+            sha: remoteReferenceSHA,
+            version: currentVersion
+        )
+
+        return lockReference != remoteLockReference
     }
 
     private func saveLockfile(configurationName: String, remoteReferenceSHA: String) throws {
@@ -218,7 +229,7 @@ final class DefaultEventGenerator: EventGenerator {
 
         lockGitRerences[configurationName] = LockReference(
             sha: remoteReferenceSHA,
-            version: analyticsGen.version ?? "0.0.0"
+            version: currentVersion
         )
 
         try fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
