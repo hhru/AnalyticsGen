@@ -43,7 +43,7 @@ private extension FinderConditionConfiguration {
         switch self {
         case .regex(let string):
             let valueRange = NSRange(value.startIndex ..< value.endIndex, in: value)
-            let regex = try NSRegularExpression(pattern: string)
+            let regex = try NSRegularExpression(pattern: string, options: [.anchorsMatchLines])
             let matches = regex.matches(in: value, range: valueRange)
 
             guard let match = matches.first else {
