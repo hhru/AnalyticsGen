@@ -13,25 +13,13 @@ source:
               type: regex
               value: ^PORTFOLIO-\d+$
           branch_regex: PORTFOLIO-\d+
-        - type: last_merged
-          run_condition:
-            source:
-              env:
-                - GIT_BRANCH
-                - GIT_MERGE_BRANCH
-              condition:
-                type: equal
-                value: develop
-          branch: develop
-          merge_commit_count: 100
-          branch_regex: PORTFOLIO-\d+
         - type: matched_tag
           source:
             file:
               - Configurations/Personal.xcconfig
             condition:
               type: regex
-              value: ANALYTICS_REF = (PORTFOLIO-\d+)
+              value: ^ANALYTICS_REF = (PORTFOLIO-\d+)$
           branch_regex: PORTFOLIO-\d+
         - type: matched_tag
           source:
@@ -39,6 +27,10 @@ source:
             condition:
               type: regex
               value: ^PORTFOLIO-\d+$
+          branch_regex: PORTFOLIO-\d+
+        - type: last_merged
+          branch: develop
+          merge_commit_count: 100
           branch_regex: PORTFOLIO-\d+
         - type: last_tag
         - type: last_commit
@@ -54,6 +46,8 @@ targets:
     path: schemas/applicant
   - name: HR-Mobile
     path: schemas/hr-mobile
+  - name: Shared
+    path: schemas/shared
 template:
   internal:
     options:

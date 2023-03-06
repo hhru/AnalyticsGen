@@ -21,6 +21,14 @@ final class RemoteRepoReferenceFinder {
         }
     }
 
+    private func lastMergeCommits(branch: String?, mergeCommitCount: Int) throws -> String {
+        if let branch {
+            return try shell("git log --merges origin/\(branch) --oneline -\(mergeCommitCount)")
+        } else {
+            return try shell("git log --merges --oneline -\(mergeCommitCount)")
+        }
+    }
+
     private func findReference(
         configuration: GitHubReferenceFinderConfiguration,
         gitHubConfiguration: GitHubSourceConfiguration,
@@ -47,7 +55,7 @@ final class RemoteRepoReferenceFinder {
                 }
 
         case let .lastMerged(branch, mergeCommitCount, branchRegex):
-            let lastMergeCommits = try shell("git log --merges origin/\(branch) --oneline -\(mergeCommitCount)")
+            let lastMergeCommits = try lastMergeCommits(branch: branch, mergeCommitCount: mergeCommitCount)
             let lastMergedBranches = try matches(for: branchRegex, in: lastMergeCommits)
 
             return try tags
