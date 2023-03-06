@@ -18,7 +18,7 @@ struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
 
         case .lastMerged:
             self.type = .lastMerged(
-                branch: try container.decode(forKey: .branch),
+                branch: try container.decodeIfPresent(forKey: .branch),
                 mergeCommitCount: try container.decode(forKey: .mergeCommitCount),
                 branchRegex: try container.decode(forKey: .branchRegex)
             )
