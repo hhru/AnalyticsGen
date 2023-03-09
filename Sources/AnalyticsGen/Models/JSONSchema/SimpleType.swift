@@ -4,7 +4,6 @@ enum SimpleType: String, Decodable {
 
     // MARK: - Enumeration Cases
 
-    case array
     case boolean
     case integer
     case null
@@ -21,9 +20,6 @@ extension SimpleType {
 
     var swiftType: String {
         switch self {
-        case .array:
-            return "Array<Any>"
-
         case .boolean:
             return "Bool"
 

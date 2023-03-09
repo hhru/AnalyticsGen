@@ -5,7 +5,7 @@ enum PropertyType: Decodable {
     // MARK: - Enumeration Cases
 
     case single(SimpleType)
-    case array([SimpleType])
+    case multiple([SimpleType])
 
     // MARK: - Initializers
 
@@ -17,7 +17,7 @@ enum PropertyType: Decodable {
             self = .single(value)
         } catch DecodingError.typeMismatch {
             let value = try container.decode([SimpleType].self)
-            self = .array(value)
+            self = .multiple(value)
         }
     }
 }

@@ -1,0 +1,25 @@
+---
+name: Результат попытки сделать повторный запрос после ошибки
+description: Результат попытки сделать повторный запрос после ошибки
+category: Разное
+application: applicant
+platform: Android
+
+internal:
+  platform: Android
+  event: auto_retry
+  initialRequestId:
+    type: string
+    description: Уникальный идентификатор запроса, сгенерированный на клиенте
+  retryCount:
+    type: integer
+    description: Количество попыток сделать запрос
+  reasons:
+    type: array
+    items:
+      type: string
+    description: Причина сбоя в запросе
+  result:
+    oneOf:
+      - name: success
+      - name: fail

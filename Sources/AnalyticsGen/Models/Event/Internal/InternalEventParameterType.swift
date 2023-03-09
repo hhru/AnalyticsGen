@@ -11,6 +11,7 @@ enum InternalEventParameterType: Decodable {
         case const
         case oneOf
         case type
+        case items
     }
 
     // MARK: - Enumeration Cases
@@ -18,6 +19,7 @@ enum InternalEventParameterType: Decodable {
     case const(String)
     case oneOf([OneOf])
     case type(PropertyType)
+    case array(SimpleType)
 
     // MARK: - Initializers
 
@@ -30,6 +32,8 @@ enum InternalEventParameterType: Decodable {
             self = .oneOf(oneOf)
         } else if let propertyType = try? container.decodeIfPresent(PropertyType.self, forKey: .type) {
             self = .type(propertyType)
+        } else if let items = try? container.decodeIfPresent(Items.self, forKey: .items) {
+            self = .array(items.type)
         } else {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
@@ -45,6 +49,20 @@ enum InternalEventParameterType: Decodable {
 
 extension InternalEventParameterType {
 
+    // MARK: - Nested Types
+
+    private struct Items: Decodable {
+
+        // MARK: - Instance Properties
+
+        let type: SimpleType
+    }
+}
+
+// MARK: -
+
+extension InternalEventParameterType {
+
     // MARK: - Instance Properties
 
     var oneOf: [OneOf]? {
@@ -52,7 +70,7 @@ extension InternalEventParameterType {
         case .oneOf(let array):
             return array
 
-        case .const, .type:
+        case .const, .type, .array:
             return nil
         }
     }
@@ -62,7 +80,7 @@ extension InternalEventParameterType {
         case .const(let value):
             return value
 
-        case .type, .oneOf:
+        case .type, .oneOf, .array:
             return nil
         }
     }
@@ -74,7 +92,7 @@ extension InternalEventParameterType {
             case .single(let type):
                 return type.swiftType
 
-            case .array(let types):
+            case .multiple(let types):
                 guard let swiftType = types.first(where: { $0 != .null })?.swiftType else {
                     return nil
                 }
@@ -83,6 +101,9 @@ extension InternalEventParameterType {
 
                 return swiftType.appending(optionalSuffix)
             }
+
+        case .array(let type):
+            return "[\(type.swiftType)]"
 
         case .const, .oneOf:
             return nil
