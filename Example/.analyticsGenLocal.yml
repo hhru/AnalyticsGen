@@ -1,0 +1,8 @@
+source: "schemas/applicant"
+template:
+  internal:
+    options:
+      publicAccess: true
+  external:
+    options:
+      publicAccess: true
