@@ -57,16 +57,21 @@ final class RemoteRepoReferenceFinder {
         case let .lastMerged(branch, mergeCommitCount, branchRegex):
             let lastMergeCommits = try lastMergeCommits(branch: branch, mergeCommitCount: mergeCommitCount)
             let lastMergedBranches = try matches(for: branchRegex, in: lastMergeCommits)
-            let taggedBranches = try tags.flatMap { try matches(for: branchRegex, in: $0) }
 
-            return lastMergedBranches
+            Log.debug("Last merged branches matching regex: \(lastMergedBranches)")
+
+            return try lastMergedBranches
                 .lazy
                 .compactMap { branch in
-                    guard let tagIndex = taggedBranches.firstIndex(of: branch) else {
-                        return nil
+                    let tag = try tags.first { tag in
+                        guard let taggedBranch = try self.matches(for: branchRegex, in: tag).first else {
+                            return false
+                        }
+
+                        return taggedBranch == branch
                     }
 
-                    return tags[tagIndex]
+                    return tag
                 }
                 .first
                 .map { .tag(name: $0) }
