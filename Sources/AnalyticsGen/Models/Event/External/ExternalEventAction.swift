@@ -32,8 +32,6 @@ enum ExternalEventAction: Decodable {
     }
 }
 
-// MARK: -
-
 extension ExternalEventAction {
 
     // MARK: - Instance Properties

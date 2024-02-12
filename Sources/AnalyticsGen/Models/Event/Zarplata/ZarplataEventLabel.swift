@@ -29,8 +29,6 @@ enum ZarplataEventLabel: Decodable {
     }
 }
 
-// MARK: -
-
 extension ZarplataEventLabel {
 
     // MARK: - Instance Properties
