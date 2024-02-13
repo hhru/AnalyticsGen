@@ -11,6 +11,5 @@ struct Event: Decodable {
     let experiment: EventExperiment?
     let external: ExternalEvent?
     let `internal`: InternalEvent?
-    let zarplata: ZarplataEvent?
     let name: String
 }
