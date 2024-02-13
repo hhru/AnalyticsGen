@@ -59,7 +59,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     private func resolveExternalEventCategory(event: ExternalEvent) -> ExternalEventContext.Category {
         switch event.category {
-        case .anonymous, .applicant, .employer:
+        case .anonymous, .applicant, .employer, .hhMobileUUID:
             return .init(value: event.category.rawValue, oneOf: nil)
         case .anonymousApplicant:
             return .init(
