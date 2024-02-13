@@ -9,7 +9,7 @@ definitions:
       # Категория события
       category:
         type: string
-        enum: [anonymous, applicant, anonymous/applicant, employer]
+        enum: [anonymous, applicant, anonymous/applicant, employer, hhmobile_uudid]
       # Action события
       action:
         type: string
