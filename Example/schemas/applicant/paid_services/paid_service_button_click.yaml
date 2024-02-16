@@ -3,6 +3,7 @@ description: Пользователь нажал на платный серви�
 category: Соискательские сервисы
 application: applicant
 platform: Android/iOS
+edition: [zp, hh, jtb]
 
 external:
   category: anonymous/applicant

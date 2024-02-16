@@ -4,6 +4,7 @@ description: Пользователь успешно авторизовался 
 category: Авторизация
 application: applicant
 platform: Android/iOS
+edition: [zp]
 
 external:
   category: hhmobile_uuid

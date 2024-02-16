@@ -68,6 +68,12 @@ definitions:
       application:
         type: string
         enum: [applicant, employer]
+     # Приложение (hh, jtb, zp)
+      edition:
+        type: array
+        items:
+          type: string
+          enum: [hh, jtb, zp]
       # Эксперимент
       experiment:
         type: object
