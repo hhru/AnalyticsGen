@@ -32,7 +32,7 @@ import Analytics
     }
     {% endif %}
 
-    var edition: [AnalyticsEventEdition] {
+    {{ accessModifier }} var edition: [AnalyticsEventEdition] {
     {% if edition %}
     {% map edition into enumValueEdition %}.{{ maploop.item }}{% endmap %}
         [{{ enumValueEdition|join:", " }}]
