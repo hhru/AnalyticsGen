@@ -32,9 +32,14 @@ import Analytics
     }
     {% endif %}
 
+    var edition: [AnalyticsEventEdition] {
     {% if edition %}
-    {{ accessModifier }} let edition: [ExternalEventUserType] = {{ edition }}
+    {% map edition into enumValueEdition %}.{{ maploop.item }}{% endmap %}
+        [{{ enumValueEdition|join:", " }}]
+    {% else %}
+        [.any]
     {% endif %}
+    }
 
     {% if category.oneOf %}
     {{ accessModifier }} enum Category: String {
