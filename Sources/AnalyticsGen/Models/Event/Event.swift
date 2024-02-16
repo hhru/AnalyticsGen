@@ -5,6 +5,7 @@ struct Event: Decodable {
     // MARK: - Instance Properties
 
     let application: EventApplication
+    let edition: [EventEdition]
     let deprecated: Bool?
     let category: String
     let description: String?
