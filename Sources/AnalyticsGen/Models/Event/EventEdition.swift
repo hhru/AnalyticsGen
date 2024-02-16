@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum EventEdition: String, Decodable {
+enum EventEdition: String, Codable {
 
     // MARK: - Enumeration Cases
 

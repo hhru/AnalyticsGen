@@ -17,6 +17,7 @@ import Analytics
  - **Описание**: {{ description }}
 {% endif %}
  */
+
 {{ accessModifier }} struct {{ structName }}: ExternalEvent {
 
     {% if label.oneOf %}
@@ -29,6 +30,10 @@ import Analytics
         {% endif %}
         {% endfor %}
     }
+    {% endif %}
+
+    {% if edition %}
+    {{ accessModifier }} let edition: [ExternalEventUserType] = {{ edition }}
     {% endif %}
 
     {% if category.oneOf %}

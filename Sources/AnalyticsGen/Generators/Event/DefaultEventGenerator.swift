@@ -103,6 +103,7 @@ final class DefaultEventGenerator: EventGenerator {
                 parameters.render.internalTemplate,
                 to: parameters.render.destination.appending(path: "\(filename)Event.swift"),
                 context: InternalEventContext(
+                    edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
@@ -135,6 +136,7 @@ final class DefaultEventGenerator: EventGenerator {
                 parameters.render.externalTemplate,
                 to: parameters.render.destination.appending(path: "\(filename)ExternalEvent.swift"),
                 context: ExternalEventContext(
+                    edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,

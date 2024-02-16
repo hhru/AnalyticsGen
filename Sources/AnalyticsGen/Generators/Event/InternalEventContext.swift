@@ -27,6 +27,7 @@ struct InternalEventContext: Encodable {
 
     // MARK: - Instance Properties
 
+    let edition: [EventEdition]?
     let deprecated: Bool
     let name: String
     let description: String?
