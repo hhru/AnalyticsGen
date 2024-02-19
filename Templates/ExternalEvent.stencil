@@ -36,7 +36,7 @@ import Analytics
     {% map edition into enumValueEdition %}.{{ maploop.item }}{% endmap %}
         [{{ enumValueEdition|join:", " }}]
     {% else %}
-        [.any]
+        [.hh, .jtb]
     {% endif %}
     }
 
