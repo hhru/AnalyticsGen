@@ -29,8 +29,6 @@ enum ExternalEventLabel: Decodable {
     }
 }
 
-// MARK: -
-
 extension ExternalEventLabel {
 
     // MARK: - Instance Properties

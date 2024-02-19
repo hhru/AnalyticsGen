@@ -31,6 +31,15 @@ import Analytics
     }
     {% endif %}
 
+    {{ accessModifier }} var edition: [AnalyticsEventEdition] {
+    {% if edition %}
+    {% map edition into enumValueEdition %}.{{ maploop.item }}{% endmap %}
+        [{{ enumValueEdition|join:", " }}]
+    {% else %}
+        [.hh, .jtb]
+    {% endif %}
+    }
+
     {% if category.oneOf %}
     {{ accessModifier }} enum Category: String {
         {% for oneOf in category.oneOf %}

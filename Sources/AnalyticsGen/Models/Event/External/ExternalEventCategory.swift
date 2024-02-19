@@ -8,4 +8,5 @@ enum ExternalEventCategory: String, Decodable {
     case anonymousApplicant = "anonymous/applicant"
     case applicant
     case employer
+    case hhMobileUUID = "hhmobile_uuid"
 }

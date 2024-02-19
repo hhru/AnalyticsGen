@@ -1,0 +1,14 @@
+---
+name: Событие успешной авторизации (ZP)
+description: Пользователь успешно авторизовался (отправляется только для ZP)
+category: Авторизация
+application: applicant
+platform: Android/iOS
+edition: [zp]
+
+external:
+  category: hhmobile_uuid
+  action: eventLoginSuccessful
+  label:
+    type: string
+    description: hhmobile_uuid пользователя

@@ -23,6 +23,15 @@ import Analytics
  */
 {{ accessModifier }} struct {{ structName }}: {{ protocol }} {
 
+    {{ accessModifier }} var edition: [AnalyticsEventEdition] {
+    {% if edition %}
+    {% map edition into enumValueEdition %}.{{ maploop.item }}{% endmap %}
+        [{{ enumValueEdition|join:", " }}]
+    {% else %}
+        .any
+    {% endif %}
+    }
+
     {{ accessModifier }} enum CodingKeys: String, CodingKey {
         {% for parameter in parameters %}
         case {% call propertyName parameter.name %} = "{{ parameter.name }}"
