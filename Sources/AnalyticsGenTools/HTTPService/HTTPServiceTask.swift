@@ -9,7 +9,7 @@ public final class HTTPServiceTask<SessionTask: URLSessionTask>: HTTPTask {
     // MARK: - Instance Properties
 
     private var responseQueue: OperationQueue
-    private var numberOfretries = 3
+    private var numberOfRetries = 3
 
     // MARK: -
 
@@ -214,10 +214,10 @@ extension HTTPServiceTask where SessionTask == URLSessionDataTask {
     internal func launch() -> Self {
         do {
             sessionTask = session.dataTask(with: try route.asRequest()) { data, response, error in
-                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
-                    Log.info("Got TimeOut error. Retry \(self.numberOfretries) time(s)...")
+                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfRetries > .zero {
+                    Log.info("Got TimeOut error. Retry \(self.numberOfRetries) time(s)...")
 
-                    self.numberOfretries -= 1
+                    self.numberOfRetries -= 1
                     self.launch()
                 } else {
                     self.handleResponse(response, data: data, error: error)
@@ -241,10 +241,10 @@ extension HTTPServiceTask where SessionTask == URLSessionDownloadTask {
     internal func launch() -> Self {
         do {
             sessionTask = session.downloadTask(with: try route.asRequest()) { url, response, error in
-                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
-                    Log.info("Got TimeOut error. Retry \(self.numberOfretries) time(s)...")
+                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfRetries > .zero {
+                    Log.info("Got TimeOut error. Retry \(self.numberOfRetries) time(s)...")
 
-                    self.numberOfretries -= 1
+                    self.numberOfRetries -= 1
                     self.launch()
                 } else {
                     self.handleResponse(
