@@ -215,7 +215,7 @@ extension HTTPServiceTask where SessionTask == URLSessionDataTask {
         do {
             sessionTask = session.dataTask(with: try route.asRequest()) { data, response, error in
                 if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
-                    Log.info("Got timedOut error. Retry \(self.numberOfretries) time(s)...")
+                    Log.info("Got TimeOut error. Retry \(self.numberOfretries) time(s)...")
 
                     self.numberOfretries -= 1
                     self.launch()
@@ -242,7 +242,7 @@ extension HTTPServiceTask where SessionTask == URLSessionDownloadTask {
         do {
             sessionTask = session.downloadTask(with: try route.asRequest()) { url, response, error in
                 if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
-                    Log.info("Got timedOut error. Retry \(self.numberOfretries) time(s)...")
+                    Log.info("Got TimeOut error. Retry \(self.numberOfretries) time(s)...")
 
                     self.numberOfretries -= 1
                     self.launch()
