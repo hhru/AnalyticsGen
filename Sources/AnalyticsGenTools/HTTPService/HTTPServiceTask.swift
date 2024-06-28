@@ -9,6 +9,7 @@ public final class HTTPServiceTask<SessionTask: URLSessionTask>: HTTPTask {
     // MARK: - Instance Properties
 
     private var responseQueue: OperationQueue
+    private var numberOfretries = 3
 
     // MARK: -
 
@@ -213,7 +214,14 @@ extension HTTPServiceTask where SessionTask == URLSessionDataTask {
     internal func launch() -> Self {
         do {
             sessionTask = session.dataTask(with: try route.asRequest()) { data, response, error in
-                self.handleResponse(response, data: data, error: error)
+                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
+                    Log.info("Got timedOut error. Retry \(self.numberOfretries) time(s)...")
+
+                    self.numberOfretries -= 1
+                    self.launch()
+                } else {
+                    self.handleResponse(response, data: data, error: error)
+                }
             }
 
             sessionTask?.resume()
@@ -233,11 +241,18 @@ extension HTTPServiceTask where SessionTask == URLSessionDownloadTask {
     internal func launch() -> Self {
         do {
             sessionTask = session.downloadTask(with: try route.asRequest()) { url, response, error in
-                self.handleResponse(
-                    response,
-                    data: url.flatMap { try? Data(contentsOf: $0) },
-                    error: error
-                )
+                if let urlError = error as? URLError, urlError.code == .timedOut, self.numberOfretries > .zero {
+                    Log.info("Got timedOut error. Retry \(self.numberOfretries) time(s)...")
+
+                    self.numberOfretries -= 1
+                    self.launch()
+                } else {
+                    self.handleResponse(
+                        response,
+                        data: url.flatMap { try? Data(contentsOf: $0) },
+                        error: error
+                    )
+                }
             }
 
             sessionTask?.resume()
