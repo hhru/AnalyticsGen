@@ -49,14 +49,6 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func resolveInternalEventProtocol(event: InternalEvent) -> String {
-        if event.knownEventName == .screenShown {
-            return "ScreenShownEvent"
-        }
-
-        return "InternalEvent"
-    }
-
     private func resolveExternalEventCategory(event: ExternalEvent) -> ExternalEventContext.Category {
         switch event.category {
         case .anonymous, .applicant, .employer, .hhMobileUUID:
@@ -96,24 +88,23 @@ final class DefaultEventGenerator: EventGenerator {
         schemaURL: URL,
         platform: EventPlatform
     ) throws {
-        let filename = schemaURL.deletingPathExtension().lastPathComponent.deletingSuffix("event").camelized
+        let fileName = schemaURL.deletingPathExtension().lastPathComponent.deletingSuffix("event").camelized
 
-        if let internalEvent = event.internal, (internalEvent.platform ?? .androidIOS) == platform {
+        if let internalEvent = event.internal, (internalEvent.platform ?? .iOSAndroid) == platform {
             try templateRenderer.renderTemplate(
                 parameters.render.internalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename)Event.swift"),
+                to: parameters.render.destination.appending(path: "\(fileName)Event.swift"),
                 context: InternalEventContext(
                     edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
                     category: event.category,
-                    eventName: internalEvent.event,
                     experiment: event.experiment.map {
                         InternalEventContext.Experiment(description: $0.description, url: $0.url.absoluteString)
                     },
-                    structName: filename.appending("Event"),
-                    protocol: resolveInternalEventProtocol(event: internalEvent),
+                    eventName: internalEvent.event,
+                    fileName: fileName,
                     parameters: internalEvent.parameters.nonEmpty?.map { parameter in
                         InternalEventContext.Parameter(
                             name: parameter.name,
@@ -131,17 +122,17 @@ final class DefaultEventGenerator: EventGenerator {
             )
         }
 
-        if let externalEvent = event.external, (externalEvent.platform ?? .androidIOS) == platform {
+        if let externalEvent = event.external, (externalEvent.platform ?? .iOSAndroid) == platform {
             try templateRenderer.renderTemplate(
                 parameters.render.externalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename)ExternalEvent.swift"),
+                to: parameters.render.destination.appending(path: "\(fileName)ExternalEvent.swift"),
                 context: ExternalEventContext(
                     edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
                     category: resolveExternalEventCategory(event: externalEvent),
-                    structName: filename.appending("ExternalEvent"),
+                    structName: fileName.appending("ExternalEvent"),
                     action: ExternalEventContext.Action(
                         description: externalEvent.action.description,
                         value: externalEvent.action.value,
@@ -175,7 +166,7 @@ final class DefaultEventGenerator: EventGenerator {
         Log.info("(\(configuration.name)) Starting code generation... 🚀")
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
-        let platform = configuration.platform ?? .androidIOS
+        let platform = configuration.platform ?? .iOSAndroid
 
         let events: [(Event, URL)] = try enumerator
             .lazy

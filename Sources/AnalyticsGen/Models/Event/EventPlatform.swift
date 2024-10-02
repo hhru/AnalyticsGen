@@ -5,7 +5,7 @@ enum EventPlatform: String, Decodable {
     // MARK: - Enumeration Cases
 
     case android = "Android"
-    case androidIOS = "Android/iOS"
+    case iOSAndroid = "Android/iOS"
     case iOS
 }
 
@@ -20,25 +20,25 @@ extension EventPlatform: Equatable {
         case (.android, .android):
             return true
 
-        case (.android, .androidIOS):
+        case (.android, .iOSAndroid):
             return true
 
         case (.android, .iOS):
             return false
 
-        case (.androidIOS, .android):
+        case (.iOSAndroid, .android):
             return true
 
-        case (.androidIOS, .androidIOS):
+        case (.iOSAndroid, .iOSAndroid):
             return true
 
-        case (.androidIOS, .iOS):
+        case (.iOSAndroid, .iOS):
             return true
 
         case (.iOS, .android):
             return false
 
-        case (.iOS, .androidIOS):
+        case (.iOS, .iOSAndroid):
             return true
 
         case (.iOS, .iOS):
