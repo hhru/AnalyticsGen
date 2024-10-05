@@ -34,7 +34,8 @@ struct InternalEventContext: Encodable {
     let category: String
     let experiment: Experiment?
     let eventName: String
-    let fileName: String
+    let schemeName: String
+    let schemePath: String
     let parameters: [Parameter]?
     let hasParametersToInit: Bool
 }

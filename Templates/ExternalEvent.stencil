@@ -1,8 +1,8 @@
 {% include "FileHeader.stencil" %}
+{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+{% set structName %}{{ schemeName|swiftIdentifier:"pretty" }}ExternalEvent{% endset %}
 {% macro propertyName name %}{{ name|swiftIdentifier:"pretty"|lowerFirstLetter|escapeReservedKeywords }}{% endmacro %}
 {% macro optional types %}{% if nullable %}?{% endif %}{% endmacro %}
-
-{% set accessModifier %}{% if options.publicAccess %}public{% else %}internal{% endif %}{% endset %}
 
 import Analytics
 
