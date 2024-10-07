@@ -32,10 +32,10 @@ struct InternalEventContext: Encodable {
     let name: String
     let description: String?
     let category: String
-    let eventName: String
     let experiment: Experiment?
-    let structName: String
-    let `protocol`: String
+    let eventName: String
+    let schemeName: String
+    let schemePath: String
     let parameters: [Parameter]?
     let hasParametersToInit: Bool
 }

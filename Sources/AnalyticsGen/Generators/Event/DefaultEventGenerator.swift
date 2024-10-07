@@ -43,18 +43,8 @@ final class DefaultEventGenerator: EventGenerator {
         let fileManager = FileManager.default
 
         try? fileManager.contentsOfDirectory(atPath: path).forEach { filename in
-            if filename.hasSuffix(.swiftExtension) {
-                try fileManager.removeItem(atPath: path + "/" + filename)
-            }
+            try fileManager.removeItem(atPath: path + "/" + filename)
         }
-    }
-
-    private func resolveInternalEventProtocol(event: InternalEvent) -> String {
-        if event.knownEventName == .screenShown {
-            return "ScreenShownEvent"
-        }
-
-        return "InternalEvent"
     }
 
     private func resolveExternalEventCategory(event: ExternalEvent) -> ExternalEventContext.Category {
@@ -93,27 +83,40 @@ final class DefaultEventGenerator: EventGenerator {
     private func generate(
         parameters: GenerationParameters,
         event: Event,
-        schemaURL: URL,
+        targetPath: String,
+        schemePath: [String],
         platform: EventPlatform
     ) throws {
-        let filename = schemaURL.deletingPathExtension().lastPathComponent.deletingSuffix("event").camelized
+        let filePath = schemePath
+            .dropLast()
+            .map { $0.camelized }
+            .joined(separator: "/")
 
-        if let internalEvent = event.internal, (internalEvent.platform ?? .androidIOS) == platform {
+        let schemeName = schemePath
+            .last?
+            .components(separatedBy: ".")
+            .first?
+            .deletingSuffix("event") ?? ""
+
+        let schemePath = schemePath.prepending(targetPath).filter { !$0.isEmpty }.joined(separator: "/")
+        let renderDestination = parameters.render.destination.appending(path: filePath)
+
+        if let internalEvent = event.internal, (internalEvent.platform ?? .iOSAndroid) == platform {
             try templateRenderer.renderTemplate(
                 parameters.render.internalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename)Event.swift"),
+                to: renderDestination.appending(path: "\(schemeName.camelized)Event.swift"),
                 context: InternalEventContext(
                     edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
                     category: event.category,
-                    eventName: internalEvent.event,
                     experiment: event.experiment.map {
                         InternalEventContext.Experiment(description: $0.description, url: $0.url.absoluteString)
                     },
-                    structName: filename.appending("Event"),
-                    protocol: resolveInternalEventProtocol(event: internalEvent),
+                    eventName: internalEvent.event,
+                    schemeName: schemeName,
+                    schemePath: schemePath,
                     parameters: internalEvent.parameters.nonEmpty?.map { parameter in
                         InternalEventContext.Parameter(
                             name: parameter.name,
@@ -131,17 +134,18 @@ final class DefaultEventGenerator: EventGenerator {
             )
         }
 
-        if let externalEvent = event.external, (externalEvent.platform ?? .androidIOS) == platform {
+        if let externalEvent = event.external, (externalEvent.platform ?? .iOSAndroid) == platform {
             try templateRenderer.renderTemplate(
                 parameters.render.externalTemplate,
-                to: parameters.render.destination.appending(path: "\(filename)ExternalEvent.swift"),
+                to: renderDestination.appending(path: "\(schemeName.camelized)ExternalEvent.swift"),
                 context: ExternalEventContext(
                     edition: event.edition,
                     deprecated: event.deprecated ?? false,
                     name: event.name,
                     description: event.description,
                     category: resolveExternalEventCategory(event: externalEvent),
-                    structName: filename.appending("ExternalEvent"),
+                    schemeName: schemeName,
+                    schemePath: schemePath,
                     action: ExternalEventContext.Action(
                         description: externalEvent.action.description,
                         value: externalEvent.action.value,
@@ -167,7 +171,7 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generate(configuration: GeneratedConfiguration, schemasPath: URL) throws {
+    private func generate(configuration: GeneratedConfiguration, targetPath: String? = nil, schemasPath: URL) throws {
         guard let enumerator = FileManager.default.enumerator(at: schemasPath, includingPropertiesForKeys: nil) else {
             throw MessageError("Failed to create enumerator at \(schemasPath).")
         }
@@ -175,22 +179,36 @@ final class DefaultEventGenerator: EventGenerator {
         Log.info("(\(configuration.name)) Starting code generation... 🚀")
 
         let generarionParameters = try resolveGenerationParameters(from: configuration)
-        let platform = configuration.platform ?? .androidIOS
+        let platform = configuration.platform ?? .iOSAndroid
 
-        let events: [(Event, URL)] = try enumerator
+        let events: [(Event, [String])] = try enumerator
             .lazy
             .compactMap { $0 as? URL }
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
-                Log.debug("(\(configuration.name)) Reading schema: \(url.lastPathComponent)")
-                let event: Event = try fileProvider.readFile(at: url.path)
-                return (event, url)
+                let basePathComponents = schemasPath.pathComponents
+                
+                let filePathComponents = url
+                    .pathComponents
+                    .drop(while: basePathComponents.contains(_:))
+
+                let filePath = filePathComponents.joined(separator: "/")
+
+                Log.debug("(\(configuration.name)) Reading schema: \(filePath)")
+
+                return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
             }
 
         try clearDestinationFolder(at: configuration.destination ?? .rootPath)
 
-        try events.forEach { event, url in
-            try generate(parameters: generarionParameters, event: event, schemaURL: url, platform: platform)
+        try events.forEach { event, schemePath in
+            try generate(
+                parameters: generarionParameters,
+                event: event,
+                targetPath: targetPath ?? "",
+                schemePath: schemePath,
+                platform: platform
+            )
         }
     }
 
@@ -254,7 +272,10 @@ final class DefaultEventGenerator: EventGenerator {
         }.map { repoPathURL in
             try self.generate(
                 configuration: configuration,
-                schemasPath: gitHubConfiguration.path.map { repoPathURL.appendingPathComponent($0) } ?? repoPathURL
+                targetPath: gitHubConfiguration.path,
+                schemasPath: gitHubConfiguration.path.map { targetPath in
+                    repoPathURL.appendingPathComponent(targetPath)
+                } ?? repoPathURL
             )
 
             try self.saveLockfile(configurationName: configuration.name, remoteReferenceSHA: remoteReferenceSHA)
@@ -363,7 +384,11 @@ final class DefaultEventGenerator: EventGenerator {
     ) throws -> Promise<EventGenerationResult> {
         switch configuration.source {
         case .local(let path):
-            try generate(configuration: configuration, schemasPath: URL(fileURLWithPath: path))
+            try generate(
+                configuration: configuration,
+                schemasPath: URL(fileURLWithPath: path)
+            )
+
             return .value(.success)
 
         case .gitHub(let gitHubConfiguration):
