@@ -201,14 +201,19 @@ final class DefaultEventGenerator: EventGenerator {
 
         try clearDestinationFolder(at: configuration.destination ?? .rootPath)
 
-        try events.forEach { event, schemePath in
-            try generate(
-                parameters: generarionParameters,
-                event: event,
-                targetPath: targetPath ?? "",
-                schemePath: schemePath,
-                platform: platform
-            )
+        events.forEach { event, schemePath in
+            do {
+                try generate(
+                    parameters: generarionParameters,
+                    event: event,
+                    targetPath: targetPath ?? "",
+                    schemePath: schemePath,
+                    platform: platform
+                )
+            } catch {
+                let filePath = schemePath.joined(separator: "/")
+                Log.fail("Failed schema: \(filePath)")
+            }
         }
     }
 
