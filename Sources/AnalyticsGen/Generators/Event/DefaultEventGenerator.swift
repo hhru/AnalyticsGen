@@ -196,7 +196,12 @@ final class DefaultEventGenerator: EventGenerator {
 
                 Log.debug("(\(configuration.name)) Reading schema: \(filePath)")
 
-                return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
+                do {
+                    return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
+                } catch {
+                    Log.fail("Failed schema: \(filePath)")
+                    throw MessageError("Failed to parse File")
+                }
             }
 
         try clearDestinationFolder(at: configuration.destination ?? .rootPath)
@@ -212,7 +217,7 @@ final class DefaultEventGenerator: EventGenerator {
                 )
             } catch {
                 let filePath = schemePath.joined(separator: "/")
-                Log.fail("Failed schema: \(filePath)")
+                Log.fail("Failed to generate event using path: \(filePath)")
             }
         }
     }
