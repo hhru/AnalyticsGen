@@ -200,13 +200,13 @@ final class DefaultEventGenerator: EventGenerator {
                     return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
                 } catch {
                     Log.fail("Failed schema: \(filePath)")
-                    throw MessageError("Failed to parse File")
+                    throw error
                 }
             }
 
         try clearDestinationFolder(at: configuration.destination ?? .rootPath)
 
-        events.forEach { event, schemePath in
+        try events.forEach { event, schemePath in
             do {
                 try generate(
                     parameters: generarionParameters,
@@ -218,6 +218,7 @@ final class DefaultEventGenerator: EventGenerator {
             } catch {
                 let filePath = schemePath.joined(separator: "/")
                 Log.fail("Failed to generate event using path: \(filePath)")
+                throw error
             }
         }
     }
