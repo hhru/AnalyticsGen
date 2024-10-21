@@ -196,19 +196,30 @@ final class DefaultEventGenerator: EventGenerator {
 
                 Log.debug("(\(configuration.name)) Reading schema: \(filePath)")
 
-                return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
+                do {
+                    return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
+                } catch {
+                    Log.fail("Failed schema: \(filePath)")
+                    throw error
+                }
             }
 
         try clearDestinationFolder(at: configuration.destination ?? .rootPath)
 
         try events.forEach { event, schemePath in
-            try generate(
-                parameters: generarionParameters,
-                event: event,
-                targetPath: targetPath ?? "",
-                schemePath: schemePath,
-                platform: platform
-            )
+            do {
+                try generate(
+                    parameters: generarionParameters,
+                    event: event,
+                    targetPath: targetPath ?? "",
+                    schemePath: schemePath,
+                    platform: platform
+                )
+            } catch {
+                let filePath = schemePath.joined(separator: "/")
+                Log.fail("Failed to generate event using path: \(filePath)")
+                throw error
+            }
         }
     }
 
