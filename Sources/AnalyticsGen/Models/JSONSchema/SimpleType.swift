@@ -10,6 +10,8 @@ enum SimpleType: String, Decodable {
     case number
     case object
     case string
+    case double
+    case float
 }
 
 // MARK: -
@@ -29,7 +31,7 @@ extension SimpleType {
         case .null:
             return "Optional<Any>.none"
 
-        case .number:
+        case .number, .double:
             return "Double"
 
         case .object:
@@ -37,6 +39,9 @@ extension SimpleType {
 
         case .string:
             return "String"
+
+        case .float:
+            return "Float"
         }
     }
 }
