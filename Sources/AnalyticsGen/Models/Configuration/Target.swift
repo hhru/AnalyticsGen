@@ -7,5 +7,5 @@ struct Target: Decodable, Equatable {
     let platform: EventPlatform?
     let path: String?
     let destination: String?
-    let ref: GitHubReferenceConfiguration?
+    let ref: RemoteRepoReferenceConfiguration?
 }

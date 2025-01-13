@@ -1,3 +1,4 @@
+import DictionaryCoder
 import Foundation
 import SwiftCLI
 import PromiseKit
@@ -31,22 +32,42 @@ final class GenerateCommand: AsyncExecutableCommand {
         "--debug",
         description: "Enable debug logging."
     )
+    
+    let provider = Key<String>(
+        "--provider",
+        "-p",
+        description: "Enter custom remote repository provider. Default - Forgejo"
+    )
 
-    let generator: EventGenerator
-
-    // MARK: - Initializers
-
-    init(generator: EventGenerator) {
-        self.generator = generator
+    var generator: EventGenerator?
+    let dependeciesGenerator: DependenciesGenerator
+    
+    init(
+        dependeciesGenerator: DependenciesGenerator = DefaultDependeciesGenerator()
+    ) {
+        self.dependeciesGenerator = dependeciesGenerator
     }
 
     // MARK: - AsyncExecutableCommand
 
     func executeAsyncAndExit() throws {
+        
         let configurationPath = self.configurationPath.value ?? .defaultConfigurationPath
-
+        
+        let selectedRemoteRepoProvider = self.provider.value ?? .defaultRemoteRepoProvider
+        
+        do {
+            self.generator = try dependeciesGenerator.createGenerator(for: selectedRemoteRepoProvider)
+        } catch {
+            self.fail(message: "Failed create generator: \(error)")
+        }
+        
         Log.isDebugLoggingEnabled = debug.value
-
+        
+        guard let generator = generator else {
+            self.fail(message: "Failed to setup generator")
+        }
+        
         firstly {
             generator.generate(configurationPath: configurationPath, force: force.value)
         }.done { result in
@@ -68,4 +89,5 @@ private extension String {
     // MARK: - Type Properties
 
     static let defaultConfigurationPath = ".analyticsGen.yml"
+    static let defaultRemoteRepoProvider = "forgejo"
 }

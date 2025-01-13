@@ -1,12 +1,12 @@
 import Foundation
 
-enum GitHubReferenceConfiguration: Decodable, Equatable {
+enum RemoteRepoReferenceConfiguration: Decodable, Equatable {
 
     // MARK: - Enumeration Cases
 
     case branch(String)
     case tag(String)
-    case finders([GitHubReferenceFinderConfiguration])
+    case finders([RemoteRepoReferenceFinderConfiguration])
 
     // MARK: - Instance Properties
 
@@ -29,11 +29,11 @@ enum GitHubReferenceConfiguration: Decodable, Equatable {
             self = .branch(branchName)
         } else if let tagName = try container.decodeIfPresent(String.self, forKey: .tag) {
             self = .tag(tagName)
-        } else if let finders = try container.decodeIfPresent([GitHubReferenceFinderConfiguration].self, forKey: .finders) {
+        } else if let finders = try container.decodeIfPresent([RemoteRepoReferenceFinderConfiguration].self, forKey: .finders) {
             self = .finders(finders)
         } else {
             throw DecodingError.typeMismatch(
-                GitHubReferenceConfiguration.self,
+                RemoteRepoReferenceConfiguration.self,
                 DecodingError.Context(
                     codingPath: decoder.codingPath,
                     debugDescription: "Invalid reference, expected 'branch', 'tag' or 'finders'",
@@ -44,7 +44,7 @@ enum GitHubReferenceConfiguration: Decodable, Equatable {
     }
 }
 
-extension GitHubReferenceConfiguration {
+extension RemoteRepoReferenceConfiguration {
 
     private enum CodingKeys: String, CodingKey {
 

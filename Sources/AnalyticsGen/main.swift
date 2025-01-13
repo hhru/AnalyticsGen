@@ -9,7 +9,7 @@ Path.current = Path(#file).appending("../../../Example")
 let analyticsGen = CLI(name: "AnalyticsGen", version: .version, description: .description)
 
 analyticsGen.commands = [
-    GenerateCommand(generator: Dependencies.eventGenerator)
+    GenerateCommand()
 ]
 
 analyticsGen.goAndExitOnError()

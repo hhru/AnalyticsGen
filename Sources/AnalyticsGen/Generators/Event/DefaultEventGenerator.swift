@@ -267,24 +267,24 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     private func generateFromRemoteRepo(
-        gitHubConfiguration: GitHubSourceConfiguration,
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         ref: String,
         configuration: GeneratedConfiguration,
         remoteReferenceSHA: String
     ) -> Promise<EventGenerationResult> {
         firstly {
             remoteRepoProvider.fetchRepo(
-                owner: gitHubConfiguration.owner,
-                repo: gitHubConfiguration.repo,
+                owner: remoteRepoConfiguration.owner,
+                repo: remoteRepoConfiguration.repo,
                 ref: ref,
-                token: try gitHubConfiguration.accessToken.resolveToken(),
+                token: try remoteRepoConfiguration.accessToken.resolveToken(),
                 key: configuration.name
             )
         }.map { repoPathURL in
             try self.generate(
                 configuration: configuration,
-                targetPath: gitHubConfiguration.path,
-                schemasPath: gitHubConfiguration.path.map { targetPath in
+                targetPath: remoteRepoConfiguration.path,
+                schemasPath: remoteRepoConfiguration.path.map { targetPath in
                     repoPathURL.appendingPathComponent(targetPath)
                 } ?? repoPathURL
             )
@@ -296,17 +296,17 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     private func fetchRemoteReferenceSHA(
-        gitHubConfiguration: GitHubSourceConfiguration,
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         gitReferenceType: GitReferenceType
     ) -> Promise<String> {
         switch gitReferenceType {
         case .tag, .branch:
             return firstly {
                 remoteRepoProvider.fetchReference(
-                    owner: gitHubConfiguration.owner,
-                    repo: gitHubConfiguration.repo,
+                    owner: remoteRepoConfiguration.owner,
+                    repo: remoteRepoConfiguration.repo,
                     ref: gitReferenceType.rawValue,
-                    token: try gitHubConfiguration.accessToken.resolveToken()
+                    token: try remoteRepoConfiguration.accessToken.resolveToken()
                 )
             }.map { reference in
                 reference.object.sha
@@ -318,13 +318,13 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     private func generateFromRemoteRepo(
-        gitHubConfiguration: GitHubSourceConfiguration,
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         gitReferenceType: GitReferenceType,
         configuration: GeneratedConfiguration,
         force: Bool
     ) -> Promise<EventGenerationResult> {
         firstly {
-            fetchRemoteReferenceSHA(gitHubConfiguration: gitHubConfiguration, gitReferenceType: gitReferenceType)
+            fetchRemoteReferenceSHA(remoteRepoConfiguration: remoteRepoConfiguration, gitReferenceType: gitReferenceType)
         }.then { remoteReferenceSHA in
             let shouldPerformGeneration = try self.shouldGenerate(
                 configuration: configuration,
@@ -333,7 +333,7 @@ final class DefaultEventGenerator: EventGenerator {
 
             if shouldPerformGeneration || force {
                 return self.generateFromRemoteRepo(
-                    gitHubConfiguration: gitHubConfiguration,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
                     ref: gitReferenceType.rawValue,
                     configuration: configuration,
                     remoteReferenceSHA: remoteReferenceSHA
@@ -345,8 +345,8 @@ final class DefaultEventGenerator: EventGenerator {
     }
 
     private func performFinders(
-        finderConfigurations: [GitHubReferenceFinderConfiguration],
-        gitHubConfiguration: GitHubSourceConfiguration,
+        finderConfigurations: [RemoteRepoReferenceFinderConfiguration],
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         generatedConfiguration: GeneratedConfiguration,
         force: Bool
     ) throws -> Promise<EventGenerationResult> {
@@ -361,7 +361,7 @@ final class DefaultEventGenerator: EventGenerator {
         return try remoteRepoReferenceFinder
             .findReference(
                 configurations: finderConfigurations,
-                gitHubConfiguration: gitHubConfiguration
+                remoteRepoConfiguration: remoteRepoConfiguration
             )
             .map { gitReferenceType in
                 if let gitReferenceType {
@@ -381,7 +381,7 @@ final class DefaultEventGenerator: EventGenerator {
             }
             .then { gitReferenceType in
                 self.generateFromRemoteRepo(
-                    gitHubConfiguration: gitHubConfiguration,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
                     gitReferenceType: gitReferenceType,
                     configuration: generatedConfiguration,
                     force: force
@@ -402,11 +402,11 @@ final class DefaultEventGenerator: EventGenerator {
 
             return .value(.success)
 
-        case .gitHub(let gitHubConfiguration):
-            switch gitHubConfiguration.ref {
+        case .remoteRepo(let remoteRepoConfiguration):
+            switch remoteRepoConfiguration.ref {
             case .tag(let name):
                 return generateFromRemoteRepo(
-                    gitHubConfiguration: gitHubConfiguration,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
                     gitReferenceType: .tag(name: name),
                     configuration: configuration,
                     force: force
@@ -414,7 +414,7 @@ final class DefaultEventGenerator: EventGenerator {
 
             case .branch(let name):
                 return generateFromRemoteRepo(
-                    gitHubConfiguration: gitHubConfiguration,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
                     gitReferenceType: .branch(name: name),
                     configuration: configuration,
                     force: force
@@ -423,7 +423,7 @@ final class DefaultEventGenerator: EventGenerator {
             case .finders(let finders):
                 return try performFinders(
                     finderConfigurations: finders,
-                    gitHubConfiguration: gitHubConfiguration,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
                     generatedConfiguration: configuration,
                     force: force
                 )

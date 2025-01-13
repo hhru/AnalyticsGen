@@ -28,7 +28,7 @@ struct GitReference: Codable, Equatable {
     // MARK: - Instance Properties
 
     let ref: String
-    let nodeID: String
+    let nodeID: String?
     let url: URL
     let object: Object
 }
