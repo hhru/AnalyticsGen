@@ -55,7 +55,9 @@ final class GenerateCommand: AsyncExecutableCommand {
         let configurationPath = self.configurationPath.value ?? .defaultConfigurationPath
         let selectedRemoteRepoProvider = self.provider.value ?? .defaultRemoteRepoProvider
         let configuration = try fileProvider.readFile(at: configurationPath, type: Configuration.self)
-        generator = try dependeciesGenerator.createGenerator(for: selectedRemoteRepoProvider, remoteHost: configuration.remoteHost)
+        let remoteHost = configuration.remoteHost ?? .defaultRemoteRepoURI
+        
+        generator = try dependeciesGenerator.createGenerator(for: selectedRemoteRepoProvider, remoteHost: remoteHost)
         
         Log.isDebugLoggingEnabled = debug.value
         
@@ -85,4 +87,5 @@ private extension String {
 
     static let defaultConfigurationPath = ".analyticsGen.yml"
     static let defaultRemoteRepoProvider = "forgejo"
+    static let defaultRemoteRepoURI = "https://forgejo.pyn.ru/api/v1"
 }

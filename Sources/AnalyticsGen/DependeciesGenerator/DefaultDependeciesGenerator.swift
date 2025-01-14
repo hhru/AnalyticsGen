@@ -28,7 +28,7 @@ final class DefaultDependeciesGenerator: DependenciesGenerator {
     func createGenerator(for provider: String, remoteHost: String) throws -> EventGenerator {
         
         guard let baseURL = URL(string: remoteHost) else {
-           throw DependeciesGeneratorError.missingRemoteHostURI
+           throw DependeciesGeneratorError.invalidRemoteHostURI
         }
         
         let repoProviderType = try RemoteRepoProviderType.from(string: provider)
