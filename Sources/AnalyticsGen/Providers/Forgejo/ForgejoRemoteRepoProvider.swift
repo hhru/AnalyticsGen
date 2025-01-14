@@ -6,10 +6,16 @@ import ZIPFoundation
 struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
     
     // MARK: - Instance Properties
-    private let baseURL = URL(string: "https://forgejo.pyn.ru/api/v1")!
-    
-        
+    let baseURL: URL
     let httpService: HTTPService
+
+    init(
+        baseURL: URL,
+        httpService: HTTPService
+    ) {
+        self.baseURL = baseURL
+        self.httpService = httpService
+    }
     
     // MARK: - RemoteRepoProvider
     
@@ -109,7 +115,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
                         method: .get,
                         url: requestURL,
                         headers: [.authorization(bearerToken: token)],
-                        queryParameters: QueryCount(limit: count)
+                        queryParameters: ForgejoQueryCount(limit: count)
                     )
                 )
                 .responseDecodable(type: [ForgejoRef].self) { httpResponse in

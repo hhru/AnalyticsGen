@@ -7,12 +7,17 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
 
     // MARK: - Instance Properties
 
-    private let baseURL = URL(string: "https://api.github.com")!
-
-    // MARK: -
-
+    let baseURL: URL
     let httpService: HTTPService
 
+    init(
+        baseURL: URL,
+        httpService: HTTPService
+    ) {
+        self.baseURL = baseURL
+        self.httpService = httpService
+    }
+    
     // MARK: - RemoteRepoProvider
 
     func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {

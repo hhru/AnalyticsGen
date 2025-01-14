@@ -25,18 +25,21 @@ final class DefaultDependeciesGenerator: DependenciesGenerator {
         )
     }
     
-    func createGenerator(for provider: String) throws -> EventGenerator {
-        let repoProviderType = RemoteRepoProviderType.from(string: provider)
+    func createGenerator(for provider: String, remoteHost: String) throws -> EventGenerator {
+        
+        guard let baseURL = URL(string: remoteHost) else {
+           throw DependeciesGeneratorError.missingRemoteHostURI
+        }
+        
+        let repoProviderType = try RemoteRepoProviderType.from(string: provider)
         
         var remoteRepoProvider: RemoteRepoProvider?
         
         switch repoProviderType {
         case .forgejo:
-            remoteRepoProvider = ForgejoRemoteRepoProvider(httpService: httpService)
+            remoteRepoProvider = ForgejoRemoteRepoProvider(baseURL: baseURL, httpService: httpService)
         case .github:
-            remoteRepoProvider = GitHubRemoteRepoProvider(httpService: httpService)
-        case .unknown:
-            throw DependeciesGeneratorError.unknownProvider
+            remoteRepoProvider = GitHubRemoteRepoProvider(baseURL: baseURL, httpService: httpService)
         }
         
         guard let remoteRepoProvider = remoteRepoProvider else {
@@ -44,7 +47,7 @@ final class DefaultDependeciesGenerator: DependenciesGenerator {
         }
         
         let remoteRepoReferenceFinder = RemoteRepoReferenceFinder(remoteRepoProvider: remoteRepoProvider)
-
+        
         return DefaultEventGenerator(
             fileProvider: yamlFileProvider,
             remoteRepoProvider: remoteRepoProvider,
@@ -52,16 +55,5 @@ final class DefaultDependeciesGenerator: DependenciesGenerator {
             dictionaryDecoder: DictionaryDecoder(),
             remoteRepoReferenceFinder: remoteRepoReferenceFinder
         )
-    }
-}
-
-enum DependeciesGeneratorError: Error {
-    case unknownProvider
-    
-    var errorDescription: String {
-        switch self {
-        case .unknownProvider:
-            "The specified remote repository provider is unknown"
-        }
     }
 }

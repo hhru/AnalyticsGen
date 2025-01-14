@@ -7,5 +7,5 @@ protocol DependenciesGenerator {
     var stencilExtensions: [StencilExtension] { get }
     var templateRenderer: TemplateRenderer { get }
     
-    func createGenerator(for provider: String) throws -> EventGenerator
+    func createGenerator(for provider: String, remoteHost: String) throws -> EventGenerator
 }

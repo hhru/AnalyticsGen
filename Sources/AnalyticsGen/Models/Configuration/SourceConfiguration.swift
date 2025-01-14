@@ -20,7 +20,6 @@ enum SourceConfiguration: Decodable, Equatable {
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-            //TODO: -
             self = .remoteRepo(configuration: try container.decode(forKey: .remoteRepo))
         } else {
             self = .local(path: try String(from: decoder))

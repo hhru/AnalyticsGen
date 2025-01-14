@@ -433,9 +433,9 @@ final class DefaultEventGenerator: EventGenerator {
 
     // MARK: - EventGenerator
 
-    func generate(configurationPath: String, force: Bool) -> Promise<EventGenerationResult> {
+    func generate(configuration: Configuration, force: Bool) -> Promise<EventGenerationResult> {
         firstly {
-            Promise.value(try fileProvider.readFile(at: configurationPath, type: Configuration.self))
+            Promise.value(configuration)
         }.map { configuration in
             configuration.configurations.reversed()
         }.get { configurations in

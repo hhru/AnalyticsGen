@@ -1,16 +1,15 @@
 enum RemoteRepoProviderType: String {
-    case forgejo = "forgejo"
-    case github = "github"
-    case unknown
+    case forgejo
+    case github
     
-    static func from(string: String) -> Self {
+    static func from(string: String) throws -> Self {
         switch string.lowercased() {
         case "forgejo":
             return .forgejo
         case "github":
             return .github
         default:
-            return .unknown
+            throw DependeciesGeneratorError.unknownProvider
         }
     }
 }
