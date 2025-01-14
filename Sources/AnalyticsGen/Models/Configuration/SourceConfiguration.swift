@@ -8,19 +8,19 @@ enum SourceConfiguration: Decodable, Equatable {
 
         // MARK: - Enumeration Cases
 
-        case gitHub
+        case remoteRepo
     }
 
     // MARK: - Instance Properties
 
     case local(path: String)
-    case gitHub(configuration: GitHubSourceConfiguration)
+    case remoteRepo(configuration: RemoteRepoSourceConfiguration)
 
     // MARK: - Initializers
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-            self = .gitHub(configuration: try container.decode(forKey: .gitHub))
+            self = .remoteRepo(configuration: try container.decode(forKey: .remoteRepo))
         } else {
             self = .local(path: try String(from: decoder))
         }
@@ -32,9 +32,9 @@ extension SourceConfiguration {
         switch source {
         case .local:
             self = source
-        case let .gitHub(configuration: configuration):
-            self = .gitHub(
-                configuration: GitHubSourceConfiguration(
+        case let .remoteRepo(configuration: configuration):
+            self = .remoteRepo(
+                configuration: RemoteRepoSourceConfiguration(
                     owner: configuration.owner,
                     repo: configuration.repo,
                     path: target.path ?? configuration.path,

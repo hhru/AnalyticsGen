@@ -1,12 +1,12 @@
 import Foundation
 
-struct GitHubSourceConfiguration: Decodable, Equatable {
+struct RemoteRepoSourceConfiguration: Decodable, Equatable {
 
     // MARK: - Instance Properties
 
     let owner: String
     let repo: String
     let path: String?
-    let ref: GitHubReferenceConfiguration
+    let ref: RemoteRepoReferenceConfiguration
     let accessToken: AccessTokenConfiguration
 }

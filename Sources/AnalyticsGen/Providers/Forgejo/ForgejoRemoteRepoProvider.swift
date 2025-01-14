@@ -3,10 +3,9 @@ import PromiseKit
 import AnalyticsGenTools
 import ZIPFoundation
 
-struct GitHubRemoteRepoProvider: RemoteRepoProvider {
-
+struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
+    
     // MARK: - Instance Properties
-
     let baseURL: URL
     let httpService: HTTPService
 
@@ -19,15 +18,15 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
     }
     
     // MARK: - RemoteRepoProvider
-
+    
     func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
         let downloadURL = baseURL
             .appendingPathComponent("repos")
             .appendingPathComponent(owner)
             .appendingPathComponent(repo)
-            .appendingPathComponent("zipball")
-            .appendingPathComponent(ref)
-
+            .appendingPathComponent("archive")
+            .appendingPathComponent("\(ref).zip")
+        
         return Promise { seal in
             httpService
                 .downloadRequest(
@@ -41,46 +40,46 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                     switch httpResponse.result {
                     case .success(let data):
                         let fileManager = FileManager.default
-
+                        
                         let archiveFileURL = fileManager
                             .temporaryDirectory
                             .appendingPathComponent("remote-schemas-\(key).zip")
-
+                        
                         let destinationPathURL = fileManager
                             .temporaryDirectory
                             .appendingPathComponent("remote-schema-\(key)")
-
+                        
                         do {
                             try data.write(to: archiveFileURL)
                             try? fileManager.removeItem(at: destinationPathURL)
                             try fileManager.createDirectory(at: destinationPathURL, withIntermediateDirectories: true)
                             try fileManager.unzipItem(at: archiveFileURL, to: destinationPathURL)
-
+                            
                             let repoPathURL = try fileManager.contentsOfDirectory(
                                 at: destinationPathURL,
                                 includingPropertiesForKeys: nil
                             )
-
+                            
                             seal.fulfill(repoPathURL[0])
                         } catch {
                             seal.reject(error)
                         }
-
+                        
                     case .failure(let error):
                         seal.reject(error)
                     }
-            }
+                }
         }
     }
-
+    
     func fetchReference(owner: String, repo: String, ref: String, token: String) -> Promise<GitReference> {
         let refURL = baseURL
             .appendingPathComponent("repos")
             .appendingPathComponent(owner)
             .appendingPathComponent(repo)
-            .appendingPathComponent("git/ref")
+            .appendingPathComponent("git/refs")
             .appendingPathComponent(ref)
-
+        
         return Promise { seal in
             httpService
                 .request(
@@ -90,65 +89,55 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                         headers: [.authorization(bearerToken: token)]
                     )
                 )
-                .responseDecodable(type: GitReference.self) { httpResponse in
+                .responseDecodable(type: [GitReference].self) { httpResponse in
                     switch httpResponse.result {
-                    case .success(let reference):
-                        seal.fulfill(reference)
-
+                    case .success(let result):
+                        seal.fulfill(result[0])
+                        
                     case .failure(let error):
                         seal.reject(error)
                     }
                 }
         }
     }
-
+    
     func fetchTagList(owner: String, repo: String, count: Int, token: String) -> Promise<[String]> {
-        let requestURL = baseURL.appendingPathComponent("graphql")
-
-        let query = """
-        {
-          repository(owner: "\(owner)", name: "\(repo)") {
-            refs(refPrefix: "refs/tags/", first: \(count), orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) {
-              edges {
-                node {
-                  name
-                }
-              }
-            }
-          }
-        }
-        """
-
+        let requestURL = baseURL
+            .appendingPathComponent("repos")
+            .appendingPathComponent(owner)
+            .appendingPathComponent(repo)
+            .appendingPathComponent("tags")
+        
         return Promise { seal in
             httpService
                 .request(
                     route: HTTPRoute(
-                        method: .post,
+                        method: .get,
                         url: requestURL,
                         headers: [.authorization(bearerToken: token)],
-                        bodyParameters: GitHubPayload(query: query)
+                        queryParameters: ForgejoQueryCount(limit: count)
                     )
                 )
-                .responseDecodable(type: GitHubAPIResponse<GitHubQuery>.self) { httpResponse in
+                .responseDecodable(type: [ForgejoRef].self) { httpResponse in
                     switch httpResponse.result {
                     case .success(let response):
-                        seal.fulfill(response.data.repository.refs.edges.map { $0.node.name })
-
+                        seal.fulfill(response.map { $0.name })
+                        
                     case .failure(let error):
                         seal.reject(error)
                     }
                 }
         }
     }
-
+    
     func fetchLastCommitSHA(owner: String, repo: String, branch: String, token: String) -> Promise<String> {
         let lastCommitURL = baseURL
             .appendingPathComponent("repos")
             .appendingPathComponent(owner)
             .appendingPathComponent(repo)
-            .appendingPathComponent("commits")
+            .appendingPathComponent("git/commits")
             .appendingPathComponent(branch)
-
+        
         return Promise { seal in
             httpService
                 .request(
@@ -158,11 +147,11 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
                         headers: [.authorization(bearerToken: token)]
                     )
                 )
-                .responseDecodable(type: GitHubCommit.self) { httpResponse in
+                .responseDecodable(type: ForgejoCommit.self) { httpResponse in
                     switch httpResponse.result {
                     case .success(let commit):
                         seal.fulfill(commit.sha)
-
+                        
                     case .failure(let error):
                         seal.reject(error)
                     }

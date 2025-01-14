@@ -1,6 +1,6 @@
 import Foundation
 
-enum GitHubReferenceFinderTypeConfiguration: Equatable {
+enum RemoteRepoReferenceFinderTypeConfiguration: Equatable {
     case matchedTag(source: FinderSourceConfiguration, branchRegex: String)
     case lastMerged(branch: String?, mergeCommitCount: Int, branchRegex: String)
     case lastTag

@@ -3,6 +3,7 @@ import AnalyticsGenTools
 
 struct Configuration: Decodable, Equatable {
     let source: SourceConfiguration
+    let remoteHost: String?
     let destination: String?
     let platform: EventPlatform?
     let template: TemplateConfiguration?

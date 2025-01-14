@@ -1,8 +1,8 @@
 import Foundation
 
-struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
+struct RemoteRepoReferenceFinderConfiguration: Decodable, Equatable {
 
-    let type: GitHubReferenceFinderTypeConfiguration
+    let type: RemoteRepoReferenceFinderTypeConfiguration
     let runCondition: FinderSourceConfiguration?
 
     init(from decoder: Decoder) throws {
@@ -38,7 +38,7 @@ struct GitHubReferenceFinderConfiguration: Decodable, Equatable {
     }
 }
 
-extension GitHubReferenceFinderConfiguration {
+extension RemoteRepoReferenceFinderConfiguration {
 
     private enum CodingKeys: String, CodingKey {
         case type

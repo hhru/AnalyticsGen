@@ -30,8 +30,8 @@ final class RemoteRepoReferenceFinder {
     }
 
     private func findReference(
-        configuration: GitHubReferenceFinderConfiguration,
-        gitHubConfiguration: GitHubSourceConfiguration,
+        configuration: RemoteRepoReferenceFinderConfiguration,
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         tags: [String]
     ) throws -> GitReferenceType? {
         guard try configuration.runCondition?.isSatisfyCondition() ?? true else {
@@ -84,10 +84,10 @@ final class RemoteRepoReferenceFinder {
         case .lastCommit(let branch):
             return try remoteRepoProvider
                 .fetchLastCommitSHA(
-                    owner: gitHubConfiguration.owner,
-                    repo: gitHubConfiguration.repo,
+                    owner: remoteRepoConfiguration.owner,
+                    repo: remoteRepoConfiguration.repo,
                     branch: branch,
-                    token: try gitHubConfiguration.accessToken.resolveToken()
+                    token: try remoteRepoConfiguration.accessToken.resolveToken()
                 )
                 .map { .commit(sha: $0) }
                 .wait()
@@ -95,15 +95,15 @@ final class RemoteRepoReferenceFinder {
     }
 
     func findReference(
-        configurations: [GitHubReferenceFinderConfiguration],
-        gitHubConfiguration: GitHubSourceConfiguration
+        configurations: [RemoteRepoReferenceFinderConfiguration],
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration
     ) throws -> Promise<GitReferenceType?> {
         remoteRepoProvider
             .fetchTagList(
-                owner: gitHubConfiguration.owner,
-                repo: gitHubConfiguration.repo,
+                owner: remoteRepoConfiguration.owner,
+                repo: remoteRepoConfiguration.repo,
                 count: 100,
-                token: try gitHubConfiguration.accessToken.resolveToken()
+                token: try remoteRepoConfiguration.accessToken.resolveToken()
             )
             .map(on: .global()) { tags in
                 try configurations
@@ -111,7 +111,7 @@ final class RemoteRepoReferenceFinder {
                     .mapFirst { index, configuration in
                         let gitRefenceType = try self.findReference(
                             configuration: configuration,
-                            gitHubConfiguration: gitHubConfiguration,
+                            remoteRepoConfiguration: remoteRepoConfiguration,
                             tags: tags
                         )
 
