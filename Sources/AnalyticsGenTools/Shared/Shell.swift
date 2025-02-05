@@ -11,6 +11,8 @@ public func shell(_ command: String) throws -> String {
     task.executableURL = URL(fileURLWithPath: "/bin/zsh")
     task.standardInput = nil
 
+    Log.debug("shell(\(command))")
+
     try task.run()
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()

@@ -1,5 +1,5 @@
 source:
-  gitHub:
+ remoteRepo:
     owner: hhru
     repo: hh-mobile-analytics
     ref:
@@ -29,25 +29,27 @@ source:
               value: ^PORTFOLIO-\d+$
           branch_regex: PORTFOLIO-\d+
         - type: last_merged
-          branch: develop
           merge_commit_count: 100
           branch_regex: PORTFOLIO-\d+
         - type: last_tag
         - type: last_commit
           branch: master
     accessToken:
-      env: GITHUB_API_TOKEN
+      env: GIT_REMOTE_API_TOKEN
       keychain:
-        service: GitHub Token
+        service: Forgejo Token
         key: hh
 platform: iOS
 targets:
   - name: Applicant
     path: schemas/applicant
+    destination: Features/Applicant/Foundation/ApplicantAnalyticsEvents/Sources/Generated/AnalyticsGen
   - name: HR-Mobile
     path: schemas/hr-mobile
+    destination: Features/Employer/Foundation/EmployerAnalyticsEvents/Sources/Generated/AnalyticsGen
   - name: Shared
     path: schemas/shared
+    destination: Features/Shared/Foundation/AnalyticsEvents/Sources/Generated/AnalyticsGen
 template:
   internal:
     options:
