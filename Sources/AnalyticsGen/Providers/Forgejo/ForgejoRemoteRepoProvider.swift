@@ -32,7 +32,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
 
             if !FileManager.default.directoryExists(atPath: gitCachePath) {
                 Log.debug("Creating a reference repository...")
-                try shell("git clone --mirror \(gitRepositoryURL) \(gitCachePath)")
+                try shell("git clone --depth 1 --filter=blob:none --filter=tree:0 \(gitRepositoryURL) \(gitCachePath)")
             } else {
                 Log.debug("Updating a reference repository...")
                 try shell("cd \(gitCachePath) && git fetch origin \(ref)")
@@ -141,14 +141,5 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
                     }
                 }
         }
-    }
-}
-
-extension FileManager {
-
-    fileprivate func directoryExists(atPath path: String) -> Bool {
-        var isDirectory: ObjCBool = true
-        let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
-        return exists && isDirectory.boolValue
     }
 }
