@@ -22,21 +22,8 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
         perform(on: .global()) {
             Log.debug("Checking out source code from Forgejo...")
 
-            let gitCachePath = FileManager.default
-                .homeDirectoryForCurrentUser
-                .appendingPathComponent("Library/Caches/ru.hh.analyticsgen/git")
-                .path
-
             let host = try baseURL.host.throwing()
             let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
-
-            if !FileManager.default.directoryExists(atPath: gitCachePath) {
-                Log.debug("Creating a reference repository...")
-                try shell("git clone --depth 1 --filter=blob:none --filter=tree:0 \(gitRepositoryURL) \(gitCachePath)")
-            } else {
-                Log.debug("Updating a reference repository...")
-                try shell("cd \(gitCachePath) && git fetch origin \(ref)")
-            }
 
             let repositoryPathURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(repo)-\(key)")
             let repositoryPath = repositoryPathURL.path
@@ -47,7 +34,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             }
 
             Log.debug("Cloning repository...")
-            try shell("git clone --reference \(gitCachePath) \(gitRepositoryURL) \(repositoryPath)")
+            try shell("git clone --depth 1 \(gitRepositoryURL) \(repositoryPath)")
 
             Log.debug("Checking out \(ref) branch...")
             try shell("cd \(repositoryPath) && git checkout \(ref)")
