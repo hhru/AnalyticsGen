@@ -7,6 +7,14 @@ extension Optional {
     public var isNil: Bool {
         self == nil
     }
+
+    public func throwing() throws -> Wrapped {
+        if let wrapped = self {
+            return wrapped
+        } else {
+            throw MessageError("Failed to unwrap optional value.")
+        }
+    }
 }
 
 extension Optional where Wrapped: Collection {

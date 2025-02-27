@@ -4,8 +4,7 @@ import AnalyticsGenTools
 import ZIPFoundation
 
 struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
-    
-    // MARK: - Instance Properties
+
     let baseURL: URL
     let httpService: HTTPService
 
@@ -20,55 +19,27 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
     // MARK: - RemoteRepoProvider
     
     func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
-        let downloadURL = baseURL
-            .appendingPathComponent("repos")
-            .appendingPathComponent(owner)
-            .appendingPathComponent(repo)
-            .appendingPathComponent("archive")
-            .appendingPathComponent("\(ref).zip")
-        
-        return Promise { seal in
-            httpService
-                .downloadRequest(
-                    route: HTTPRoute(
-                        method: .get,
-                        url: downloadURL,
-                        headers: [.authorization(bearerToken: token)]
-                    )
-                )
-                .responseData { httpResponse in
-                    switch httpResponse.result {
-                    case .success(let data):
-                        let fileManager = FileManager.default
-                        
-                        let archiveFileURL = fileManager
-                            .temporaryDirectory
-                            .appendingPathComponent("remote-schemas-\(key).zip")
-                        
-                        let destinationPathURL = fileManager
-                            .temporaryDirectory
-                            .appendingPathComponent("remote-schema-\(key)")
-                        
-                        do {
-                            try data.write(to: archiveFileURL)
-                            try? fileManager.removeItem(at: destinationPathURL)
-                            try fileManager.createDirectory(at: destinationPathURL, withIntermediateDirectories: true)
-                            try fileManager.unzipItem(at: archiveFileURL, to: destinationPathURL)
-                            
-                            let repoPathURL = try fileManager.contentsOfDirectory(
-                                at: destinationPathURL,
-                                includingPropertiesForKeys: nil
-                            )
-                            
-                            seal.fulfill(repoPathURL[0])
-                        } catch {
-                            seal.reject(error)
-                        }
-                        
-                    case .failure(let error):
-                        seal.reject(error)
-                    }
-                }
+        perform(on: .global()) {
+            Log.debug("Checking out source code from Forgejo...")
+
+            let host = try baseURL.host.throwing()
+            let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
+
+            let repositoryPathURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(repo)-\(key)")
+            let repositoryPath = repositoryPathURL.path
+
+            if FileManager.default.directoryExists(atPath: repositoryPath) {
+                Log.debug("Cleaning repository directory...")
+                try FileManager.default.removeItem(atPath: repositoryPath)
+            }
+
+            Log.debug("Cloning repository...")
+            try shell("git clone --depth 1 \(gitRepositoryURL) \(repositoryPath)")
+
+            Log.debug("Checking out \(ref) branch...")
+            try shell("cd \(repositoryPath) && git checkout \(ref)")
+
+            return repositoryPathURL
         }
     }
     
