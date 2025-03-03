@@ -28,16 +28,18 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             let repositoryPathURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(repo)-\(key)")
             let repositoryPath = repositoryPathURL.path
 
+            let branch = ref.components(separatedBy: "/").last ?? ""
+
             if FileManager.default.directoryExists(atPath: repositoryPath) {
                 Log.debug("Cleaning repository directory...")
                 try FileManager.default.removeItem(atPath: repositoryPath)
             }
 
             Log.debug("Cloning repository...")
-            try shell("git clone --depth 1 -b \(ref) \(gitRepositoryURL) \(repositoryPath)")
+            try shell("git clone --depth 1 -b \(branch) \(gitRepositoryURL) \(repositoryPath)")
 
             Log.debug("Checking out \(ref) branch...")
-            try shell("cd \(repositoryPath) && git checkout \(ref)")
+            try shell("cd \(repositoryPath) && git checkout \(branch)")
 
             return repositoryPathURL
         }
