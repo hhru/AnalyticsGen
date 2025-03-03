@@ -34,7 +34,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             }
 
             Log.debug("Cloning repository...")
-            try shell("git clone --depth 1 \(gitRepositoryURL) \(repositoryPath)")
+            try shell("git clone --depth 1 -b \(ref) \(gitRepositoryURL) \(repositoryPath)")
 
             Log.debug("Checking out \(ref) branch...")
             try shell("cd \(repositoryPath) && git checkout \(ref)")
