@@ -18,7 +18,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
     
     // MARK: - RemoteRepoProvider
     
-    func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
+    func fetchRepo(owner: String, repo: String, ref: GitReferenceType, token: String, key: String) -> Promise<URL> {
         perform(on: .global()) {
             Log.debug("Checking out source code from Forgejo...")
 
@@ -28,7 +28,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             let repositoryPathURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(repo)-\(key)")
             let repositoryPath = repositoryPathURL.path
 
-            let branch = ref.components(separatedBy: "/").last ?? ""
+//            let branch = ref.components(separatedBy: "/").last ?? ""
 
             if FileManager.default.directoryExists(atPath: repositoryPath) {
                 Log.debug("Cleaning repository directory...")
@@ -36,10 +36,10 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             }
 
             Log.debug("Cloning repository...")
-            try shell("git clone --depth 1 -b \(branch) \(gitRepositoryURL) \(repositoryPath)")
+            try shell("git clone --depth 1 -b \(ref.rawValue) \(gitRepositoryURL) \(repositoryPath)")
 
-            Log.debug("Checking out \(ref) branch...")
-            try shell("cd \(repositoryPath) && git checkout \(branch)")
+            Log.debug("Checking out \(ref.rawValue) branch...")
+            try shell("cd \(repositoryPath) && git checkout \(ref.rawValue)")
 
             return repositoryPathURL
         }
