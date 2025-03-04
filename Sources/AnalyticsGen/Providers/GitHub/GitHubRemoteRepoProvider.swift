@@ -20,13 +20,13 @@ struct GitHubRemoteRepoProvider: RemoteRepoProvider {
     
     // MARK: - RemoteRepoProvider
 
-    func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
+    func fetchRepo(owner: String, repo: String, ref: GitReferenceType, token: String, key: String) -> Promise<URL> {
         let downloadURL = baseURL
             .appendingPathComponent("repos")
             .appendingPathComponent(owner)
             .appendingPathComponent(repo)
             .appendingPathComponent("zipball")
-            .appendingPathComponent(ref)
+            .appendingPathComponent(ref.rawValue)
 
         return Promise { seal in
             httpService

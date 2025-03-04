@@ -268,7 +268,7 @@ final class DefaultEventGenerator: EventGenerator {
 
     private func generateFromRemoteRepo(
         remoteRepoConfiguration: RemoteRepoSourceConfiguration,
-        ref: String,
+        ref: GitReferenceType,
         configuration: GeneratedConfiguration,
         remoteReferenceSHA: String
     ) -> Promise<EventGenerationResult> {
@@ -334,7 +334,7 @@ final class DefaultEventGenerator: EventGenerator {
             if shouldPerformGeneration || force {
                 return self.generateFromRemoteRepo(
                     remoteRepoConfiguration: remoteRepoConfiguration,
-                    ref: gitReferenceType.rawValue,
+                    ref: gitReferenceType,
                     configuration: configuration,
                     remoteReferenceSHA: remoteReferenceSHA
                 )
