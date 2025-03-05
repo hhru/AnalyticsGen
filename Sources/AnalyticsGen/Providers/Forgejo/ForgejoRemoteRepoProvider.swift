@@ -18,7 +18,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
     
     // MARK: - RemoteRepoProvider
     
-    func fetchRepo(owner: String, repo: String, ref: String, token: String, key: String) -> Promise<URL> {
+    func fetchRepo(owner: String, repo: String, ref: GitReferenceType, token: String, key: String) -> Promise<URL> {
         perform(on: .global()) {
             Log.debug("Checking out source code from Forgejo...")
 
@@ -34,10 +34,16 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             }
 
             Log.debug("Cloning repository...")
-            try shell("git clone --depth 1 \(gitRepositoryURL) \(repositoryPath)")
+            switch ref {
+            case .tag, .branch:
+                try shell("git clone --depth 1 -b \(ref.nameValue) \(gitRepositoryURL) \(repositoryPath)")
 
-            Log.debug("Checking out \(ref) branch...")
-            try shell("cd \(repositoryPath) && git checkout \(ref)")
+            case .commit:
+                try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
+
+                Log.debug("Checking out \(ref.nameValue) branch...")
+                try shell("cd \(repositoryPath) && git checkout \(ref.nameValue)")
+            }
 
             return repositoryPathURL
         }
