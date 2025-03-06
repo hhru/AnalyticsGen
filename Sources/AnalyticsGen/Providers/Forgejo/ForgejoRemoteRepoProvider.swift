@@ -35,14 +35,14 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
 
             Log.debug("Cloning repository...")
             switch ref {
-            case .tag, .branch:
-                try shell("git clone --depth 1 -b \(ref.nameValue) \(gitRepositoryURL) \(repositoryPath)")
+            case .tag(let name), .branch(let name):
+                try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
 
-            case .commit:
+            case .commit(let sha):
                 try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
 
-                Log.debug("Checking out \(ref.nameValue) branch...")
-                try shell("cd \(repositoryPath) && git checkout \(ref.nameValue)")
+                Log.debug("Checking out \(sha) commit...")
+                try shell("cd \(repositoryPath) && git checkout \(sha)")
             }
 
             return repositoryPathURL

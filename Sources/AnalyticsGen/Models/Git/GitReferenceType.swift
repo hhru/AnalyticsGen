@@ -15,14 +15,4 @@ enum GitReferenceType: Equatable {
             return sha
         }
     }
-
-    var nameValue: String {
-        switch self {
-        case .tag(let name), .branch(let name):
-            return name
-
-        case .commit(let sha):
-            return sha
-        }
-    }
 }
