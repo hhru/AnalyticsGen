@@ -25,7 +25,10 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             let host = try baseURL.host.throwing()
             let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
 
-            let repositoryPathURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(repo)-\(key)")
+            let tempURL = FileManager.default.temporaryDirectory
+            let privateTempURL = URL(fileURLWithPath: "/private" + tempURL.path)
+
+            let repositoryPathURL = privateTempURL.appendingPathComponent("\(repo)-\(key)")
             let repositoryPath = repositoryPathURL.path
 
             if FileManager.default.directoryExists(atPath: repositoryPath) {
