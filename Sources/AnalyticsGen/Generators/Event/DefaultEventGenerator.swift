@@ -227,11 +227,11 @@ final class DefaultEventGenerator: EventGenerator {
         configuration: GeneratedConfiguration,
         remoteReferenceSHA: String
     ) throws -> Bool {
-        let hasGeneratedFiles = try? !FileManager
-            .default
-            .contentsOfDirectory(atPath: configuration.destination ?? .rootPath)
-            .filter { $0.lowercased().hasSuffix(.swiftExtension) }
-            .isEmpty
+        let destinationPath = configuration.destination ?? .rootPath
+
+        let hasGeneratedFiles = (FileManager.default.enumerator(atPath: destinationPath)?
+            .compactMap { $0 as? String }
+            .contains { $0.lowercased().hasSuffix(.swiftExtension) }) ?? false
 
         let lockReferenceDict = try? fileProvider.readFileIfExists(
             at: .lockFilePath,
