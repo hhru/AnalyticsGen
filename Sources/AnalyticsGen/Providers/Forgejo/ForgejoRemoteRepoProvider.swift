@@ -41,11 +41,12 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             case .tag(let name), .branch(let name):
                 try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
 
-                if ProcessInfo.processInfo.environment["CHANGE_TARGET"] == "develop" {
+                if ProcessInfo.processInfo.environment["ANALYTICS_GEN_EXPERIMENTAL_MERGE"] == "true" &&
+                    ProcessInfo.processInfo.environment["CHANGE_TARGET"] == "develop"
+                {
+                    Log.debug("Trying to merge master into user branch")
                     try shell("cd \(repositoryPath) && git fetch --depth 1 origin refs/heads/master:refs/remotes/origin/master")
-                    // Potential issue here: during merge, we automatically resolve conflicts by favoring HEAD changes
-                    // to avoid manual conflict resolution.
-                    try shell("cd \(repositoryPath) && git merge origin/master -X ours --allow-unrelated-histories --no-edit")
+                    try shell("cd \(repositoryPath) && git merge origin/master --allow-unrelated-histories --no-edit")
                 }
             case .commit(let sha):
                 try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
