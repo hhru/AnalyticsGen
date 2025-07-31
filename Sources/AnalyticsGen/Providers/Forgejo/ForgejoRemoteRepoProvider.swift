@@ -39,14 +39,15 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
             Log.debug("Cloning repository...")
             switch ref {
             case .tag(let name), .branch(let name):
-                try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
-
                 if ProcessInfo.processInfo.environment["ANALYTICS_GEN_EXPERIMENTAL_MERGE"] == "true" &&
                     ProcessInfo.processInfo.environment["CHANGE_TARGET"] == "develop"
                 {
                     Log.debug("Trying to merge master into user branch")
+                    try shell("git clone -b \(name) \(gitRepositoryURL) \(repositoryPath)")
                     try shell("cd \(repositoryPath) && git fetch --depth 1 origin refs/heads/master:refs/remotes/origin/master")
-                    try shell("cd \(repositoryPath) && git merge origin/master --allow-unrelated-histories --no-edit")
+                    try shell("cd \(repositoryPath) && git merge origin/master --no-edit")
+                } else {
+                    try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
                 }
             case .commit(let sha):
                 try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
