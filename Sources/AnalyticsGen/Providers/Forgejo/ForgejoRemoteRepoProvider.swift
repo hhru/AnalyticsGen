@@ -24,6 +24,14 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
 
             let host = try baseURL.host.throwing()
             let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
+            
+            Log.debug("Checking SSH connectivity to \(host)...")
+            do {
+                try shell("ssh -T -o ConnectTimeout=10 -o StrictHostKeyChecking=no git@\(host)", timeout: 15)
+                Log.debug("SSH connectivity check completed")
+            } catch {
+                Log.debug("SSH connectivity check failed, but proceeding with clone: \(error.localizedDescription)")
+            }
 
             let tempURL = FileManager.default.temporaryDirectory
             let privateTempURL = URL(fileURLWithPath: "/private" + tempURL.path)
@@ -43,17 +51,25 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
                     ProcessInfo.processInfo.environment["CHANGE_TARGET"] == "develop"
                 {
                     Log.debug("Trying to merge master into user branch")
-                    try shell("git clone -b \(name) \(gitRepositoryURL) \(repositoryPath)")
-                    try shell("cd \(repositoryPath) && git fetch --depth 1 origin refs/heads/master:refs/remotes/origin/master")
-                    try shell("cd \(repositoryPath) && git merge origin/master --no-edit")
+                    try shell("git clone -b \(name) \(gitRepositoryURL) \(repositoryPath)", timeout: 300)
+                    Log.debug("Repository cloned successfully")
+
+                    try shell("cd \(repositoryPath) && git fetch --depth 1 origin refs/heads/master:refs/remotes/origin/master", timeout: 120)
+                    Log.debug("Master branch fetched successfully")
+
+                    try shell("cd \(repositoryPath) && git merge origin/master --no-edit", timeout: 60)
+                    Log.debug("Master branch merged successfully")
                 } else {
-                    try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
+                    try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)", timeout: 300)
+                    Log.debug("Repository cloned successfully")
                 }
             case .commit(let sha):
-                try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
+                try shell("git clone \(gitRepositoryURL) \(repositoryPath)", timeout: 300)
+                Log.debug("Repository cloned successfully")
 
                 Log.debug("Checking out \(sha) commit...")
-                try shell("cd \(repositoryPath) && git checkout \(sha)")
+                try shell("cd \(repositoryPath) && git checkout \(sha)", timeout: 60)
+                Log.debug("Commit checked out successfully")
             }
 
             return repositoryPathURL
