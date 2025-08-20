@@ -2,21 +2,22 @@ import Foundation
 
 enum SourceConfiguration: Decodable, Equatable {
 
-    // MARK: - Nested Types
-
     private enum CodingKeys: String, CodingKey {
-
-        // MARK: - Enumeration Cases
-
         case remoteRepo
     }
-
-    // MARK: - Instance Properties
 
     case local(path: String)
     case remoteRepo(configuration: RemoteRepoSourceConfiguration)
 
-    // MARK: - Initializers
+    var remoteRepoConfiguration: RemoteRepoSourceConfiguration? {
+        switch self {
+        case .remoteRepo(configuration: let configuration):
+            return configuration
+
+        default:
+            return nil
+        }
+    }
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
@@ -28,6 +29,7 @@ enum SourceConfiguration: Decodable, Equatable {
 }
 
 extension SourceConfiguration {
+
     init(source: SourceConfiguration, target: Target) {
         switch source {
         case .local:
