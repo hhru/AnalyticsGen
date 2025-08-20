@@ -44,7 +44,7 @@ struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
                 {
                     Log.debug("Trying to merge master into user branch")
                     try shell("git clone -b \(name) \(gitRepositoryURL) \(repositoryPath)")
-                    try shell("cd \(repositoryPath) && git fetch --depth 1 origin refs/heads/master:refs/remotes/origin/master")
+                    try shell("cd \(repositoryPath) && git fetch origin refs/heads/master:refs/remotes/origin/master")
                     try shell("cd \(repositoryPath) && git merge origin/master --no-edit")
                 } else {
                     try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
