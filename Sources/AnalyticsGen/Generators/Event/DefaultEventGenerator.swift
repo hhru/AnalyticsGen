@@ -250,7 +250,7 @@ final class DefaultEventGenerator: EventGenerator {
         return lockReference != remoteLockReference
     }
 
-    private func saveLockfile(configurationName: String, remoteReferenceSHA: String) throws {
+    private func saveLockfile(configurationNames: [String], remoteReferenceSHA: String) throws {
         var lockGitRerences = (
             try? fileProvider.readFileIfExists(
                 at: .lockFilePath,
@@ -258,12 +258,62 @@ final class DefaultEventGenerator: EventGenerator {
             )
         ) ?? [:]
 
-        lockGitRerences[configurationName] = LockReference(
-            sha: remoteReferenceSHA,
-            version: currentVersion
-        )
+        configurationNames.forEach { configurationName in
+            lockGitRerences[configurationName] = LockReference(
+                sha: remoteReferenceSHA,
+                version: currentVersion
+            )
+        }
 
         try fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
+    }
+    
+    private func saveLockfile(configurationName: String, remoteReferenceSHA: String) throws {
+        try saveLockfile(configurationNames: [configurationName], remoteReferenceSHA: remoteReferenceSHA)
+    }
+
+    private func generateFromRemoteRepoCore(
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
+        ref: GitReferenceType,
+        configurations: [GeneratedConfiguration],
+        remoteReferenceSHA: String,
+        useConfigurationKey: Bool = false
+    ) -> Promise<EventGenerationResult> {
+        let key = useConfigurationKey ? configurations.first?.name ?? "Main" : "Main"
+        
+        return firstly {
+            remoteRepoProvider.fetchRepo(
+                owner: remoteRepoConfiguration.owner,
+                repo: remoteRepoConfiguration.repo,
+                ref: ref,
+                token: try remoteRepoConfiguration.accessToken.resolveToken(),
+                key: key
+            )
+        }.then { repoPathURL in
+            let generationPromises = configurations.map { configuration in
+                perform(on: .global()) {
+                    let targetPath = useConfigurationKey ? remoteRepoConfiguration.path : configuration.source.remoteRepoConfiguration?.path
+                    let schemasPath = targetPath.map { targetPath in
+                        repoPathURL.appendingPathComponent(targetPath)
+                    } ?? repoPathURL
+                    
+                    try self.generate(
+                        configuration: configuration,
+                        targetPath: targetPath,
+                        schemasPath: schemasPath
+                    )
+                }
+            }
+
+            return when(fulfilled: generationPromises)
+        }.map {
+            try self.saveLockfile(
+                configurationNames: configurations.map { $0.name },
+                remoteReferenceSHA: remoteReferenceSHA
+            )
+
+            return .success
+        }
     }
 
     private func generateFromRemoteRepo(
@@ -272,27 +322,13 @@ final class DefaultEventGenerator: EventGenerator {
         configuration: GeneratedConfiguration,
         remoteReferenceSHA: String
     ) -> Promise<EventGenerationResult> {
-        firstly {
-            remoteRepoProvider.fetchRepo(
-                owner: remoteRepoConfiguration.owner,
-                repo: remoteRepoConfiguration.repo,
-                ref: ref,
-                token: try remoteRepoConfiguration.accessToken.resolveToken(),
-                key: configuration.name
-            )
-        }.map { repoPathURL in
-            try self.generate(
-                configuration: configuration,
-                targetPath: remoteRepoConfiguration.path,
-                schemasPath: remoteRepoConfiguration.path.map { targetPath in
-                    repoPathURL.appendingPathComponent(targetPath)
-                } ?? repoPathURL
-            )
-
-            try self.saveLockfile(configurationName: configuration.name, remoteReferenceSHA: remoteReferenceSHA)
-
-            return .success
-        }
+        return generateFromRemoteRepoCore(
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            ref: ref,
+            configurations: [configuration],
+            remoteReferenceSHA: remoteReferenceSHA,
+            useConfigurationKey: true
+        )
     }
 
     private func fetchRemoteReferenceSHA(
@@ -317,26 +353,33 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func generateFromRemoteRepo(
+    private func generateFromRemoteRepoWithForce(
         remoteRepoConfiguration: RemoteRepoSourceConfiguration,
         gitReferenceType: GitReferenceType,
-        configuration: GeneratedConfiguration,
-        force: Bool
+        configurations: [GeneratedConfiguration],
+        force: Bool,
+        useConfigurationKey: Bool = false
     ) -> Promise<EventGenerationResult> {
         firstly {
-            fetchRemoteReferenceSHA(remoteRepoConfiguration: remoteRepoConfiguration, gitReferenceType: gitReferenceType)
-        }.then { remoteReferenceSHA in
-            let shouldPerformGeneration = try self.shouldGenerate(
-                configuration: configuration,
-                remoteReferenceSHA: remoteReferenceSHA
+            fetchRemoteReferenceSHA(
+                remoteRepoConfiguration: remoteRepoConfiguration,
+                gitReferenceType: gitReferenceType
             )
-
-            if shouldPerformGeneration || force {
-                return self.generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    ref: gitReferenceType,
+        }.then { remoteReferenceSHA in
+            let shouldPerformGeneration = try configurations.contains { configuration in
+                try self.shouldGenerate(
                     configuration: configuration,
                     remoteReferenceSHA: remoteReferenceSHA
+                )
+            }
+
+            if shouldPerformGeneration || force {
+                return self.generateFromRemoteRepoCore(
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    ref: gitReferenceType,
+                    configurations: configurations,
+                    remoteReferenceSHA: remoteReferenceSHA,
+                    useConfigurationKey: useConfigurationKey
                 )
             } else {
                 return .value(.upToDate)
@@ -344,19 +387,41 @@ final class DefaultEventGenerator: EventGenerator {
         }
     }
 
-    private func performFinders(
+    private func generateFromRemoteRepo(
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
+        gitReferenceType: GitReferenceType,
+        configuration: GeneratedConfiguration,
+        force: Bool
+    ) -> Promise<EventGenerationResult> {
+        return generateFromRemoteRepoWithForce(
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            gitReferenceType: gitReferenceType,
+            configurations: [configuration],
+            force: force,
+            useConfigurationKey: true
+        )
+    }
+
+    private func performFindersCore(
         finderConfigurations: [RemoteRepoReferenceFinderConfiguration],
         remoteRepoConfiguration: RemoteRepoSourceConfiguration,
-        generatedConfiguration: GeneratedConfiguration,
-        force: Bool
+        generatedConfigurations: [GeneratedConfiguration],
+        force: Bool,
+        useConfigurationName: Bool = false
     ) throws -> Promise<EventGenerationResult> {
-        Log.info(
-            String(
-                format: "(%@) Searching remote repo reference via %d finder(s)...",
-                generatedConfiguration.name,
-                finderConfigurations.count
-            )
-        )
+        let configurationName = useConfigurationName ? generatedConfigurations.first?.name : nil
+        let logFormat = useConfigurationName 
+            ? "(%@) Searching remote repo reference via %d finder(s)..."
+            : "Searching remote repo reference via %d finder(s)..."
+        let findLogFormat = useConfigurationName
+            ? "(%@) Found remote repo reference '%@'."
+            : "Found remote repo reference '%@'."
+
+        if let configurationName = configurationName {
+            Log.info(String(format: logFormat, configurationName, finderConfigurations.count))
+        } else {
+            Log.info(String(format: logFormat, finderConfigurations.count))
+        }
 
         return try remoteRepoReferenceFinder
             .findReference(
@@ -371,22 +436,104 @@ final class DefaultEventGenerator: EventGenerator {
                 }
             }
             .get { (gitReferenceType: GitReferenceType) in
-                Log.info(
-                    String(
-                        format: "(%@) Found remote repo reference '%@'.",
-                        generatedConfiguration.name,
-                        gitReferenceType.rawValue
-                    )
-                )
+                if let configurationName = configurationName {
+                    Log.info(String(format: findLogFormat, configurationName, gitReferenceType.rawValue))
+                } else {
+                    Log.info(String(format: findLogFormat, gitReferenceType.rawValue))
+                }
             }
             .then { gitReferenceType in
-                self.generateFromRemoteRepo(
+                if generatedConfigurations.count == 1 && useConfigurationName {
+                    return self.generateFromRemoteRepo(
+                        remoteRepoConfiguration: remoteRepoConfiguration,
+                        gitReferenceType: gitReferenceType,
+                        configuration: generatedConfigurations[0],
+                        force: force
+                    )
+                } else {
+                    return self.generateFromRemoteRepo(
+                        remoteRepoConfiguration: remoteRepoConfiguration,
+                        gitReferenceType: gitReferenceType,
+                        configurations: generatedConfigurations,
+                        force: force
+                    )
+                }
+            }
+    }
+
+    private func performFinders(
+        finderConfigurations: [RemoteRepoReferenceFinderConfiguration],
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
+        generatedConfiguration: GeneratedConfiguration,
+        force: Bool
+    ) throws -> Promise<EventGenerationResult> {
+        return try performFindersCore(
+            finderConfigurations: finderConfigurations,
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            generatedConfigurations: [generatedConfiguration],
+            force: force,
+            useConfigurationName: true
+        )
+    }
+
+    private func handleRemoteRepoReference(
+        remoteRepoConfiguration: RemoteRepoSourceConfiguration,
+        configurations: [GeneratedConfiguration],
+        force: Bool,
+        useSingleConfiguration: Bool = false
+    ) throws -> Promise<EventGenerationResult> {
+        switch remoteRepoConfiguration.ref {
+        case .tag(let name):
+            if useSingleConfiguration && configurations.count == 1 {
+                return generateFromRemoteRepo(
                     remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: gitReferenceType,
-                    configuration: generatedConfiguration,
+                    gitReferenceType: .tag(name: name),
+                    configuration: configurations[0],
+                    force: force
+                )
+            } else {
+                return generateFromRemoteRepo(
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    gitReferenceType: .tag(name: name),
+                    configurations: configurations,
                     force: force
                 )
             }
+
+        case .branch(let name):
+            if useSingleConfiguration && configurations.count == 1 {
+                return generateFromRemoteRepo(
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    gitReferenceType: .branch(name: name),
+                    configuration: configurations[0],
+                    force: force
+                )
+            } else {
+                return generateFromRemoteRepo(
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    gitReferenceType: .branch(name: name),
+                    configurations: configurations,
+                    force: force
+                )
+            }
+
+        case .finders(let finders):
+            if useSingleConfiguration && configurations.count == 1 {
+                return try performFinders(
+                    finderConfigurations: finders,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    generatedConfiguration: configurations[0],
+                    force: force
+                )
+            } else {
+                return try performFinders(
+                    finderConfigurations: finders,
+                    remoteRepoConfiguration: remoteRepoConfiguration,
+                    generatedConfigurations: configurations,
+                    force: force
+                )
+            }
+        }
     }
 
     private func generate(
@@ -403,50 +550,13 @@ final class DefaultEventGenerator: EventGenerator {
             return .value(.success)
 
         case .remoteRepo(let remoteRepoConfiguration):
-            switch remoteRepoConfiguration.ref {
-            case .tag(let name):
-                return generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: .tag(name: name),
-                    configuration: configuration,
-                    force: force
-                )
-
-            case .branch(let name):
-                return generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: .branch(name: name),
-                    configuration: configuration,
-                    force: force
-                )
-
-            case .finders(let finders):
-                return try performFinders(
-                    finderConfigurations: finders,
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    generatedConfiguration: configuration,
-                    force: force
-                )
-            }
-        }
-    }
-
-    private func saveLockfile(configurationNames: [String], remoteReferenceSHA: String) throws {
-        var lockGitRerences = (
-            try? fileProvider.readFileIfExists(
-                at: .lockFilePath,
-                type: [String: LockReference].self
-            )
-        ) ?? [:]
-
-        configurationNames.forEach { configurationName in
-            lockGitRerences[configurationName] = LockReference(
-                sha: remoteReferenceSHA,
-                version: currentVersion
+            return try handleRemoteRepoReference(
+                remoteRepoConfiguration: remoteRepoConfiguration,
+                configurations: [configuration],
+                force: force,
+                useSingleConfiguration: true
             )
         }
-
-        try fileProvider.writeFile(content: lockGitRerences, at: .lockFilePath)
     }
 
     private func generateFromRemoteRepo(
@@ -455,36 +565,13 @@ final class DefaultEventGenerator: EventGenerator {
         configurations: [GeneratedConfiguration],
         remoteReferenceSHA: String
     ) -> Promise<EventGenerationResult> {
-        firstly {
-            remoteRepoProvider.fetchRepo(
-                owner: remoteRepoConfiguration.owner,
-                repo: remoteRepoConfiguration.repo,
-                ref: ref,
-                token: try remoteRepoConfiguration.accessToken.resolveToken(),
-                key: "Main"
-            )
-        }.then { repoPathURL in
-            let generationPromises = configurations.map { configuration in
-                perform(on: .global()) {
-                    try self.generate(
-                        configuration: configuration,
-                        targetPath: configuration.source.remoteRepoConfiguration?.path,
-                        schemasPath: configuration.source.remoteRepoConfiguration?.path.map { targetPath in
-                            repoPathURL.appendingPathComponent(targetPath)
-                        } ?? repoPathURL
-                    )
-                }
-            }
-
-            return when(fulfilled: generationPromises)
-        }.map {
-            try self.saveLockfile(
-                configurationNames: configurations.map { $0.name },
-                remoteReferenceSHA: remoteReferenceSHA
-            )
-
-            return .success
-        }
+        return generateFromRemoteRepoCore(
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            ref: ref,
+            configurations: configurations,
+            remoteReferenceSHA: remoteReferenceSHA,
+            useConfigurationKey: false
+        )
     }
 
     private func generateFromRemoteRepo(
@@ -493,30 +580,13 @@ final class DefaultEventGenerator: EventGenerator {
         configurations: [GeneratedConfiguration],
         force: Bool
     ) -> Promise<EventGenerationResult> {
-        firstly {
-            fetchRemoteReferenceSHA(
-                remoteRepoConfiguration: remoteRepoConfiguration,
-                gitReferenceType: gitReferenceType
-            )
-        }.then { remoteReferenceSHA in
-            let shouldPerformGeneration = try configurations.contains { configuration in
-                try self.shouldGenerate(
-                    configuration: configuration,
-                    remoteReferenceSHA: remoteReferenceSHA
-                )
-            }
-
-            if shouldPerformGeneration || force {
-                return self.generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    ref: gitReferenceType,
-                    configurations: configurations,
-                    remoteReferenceSHA: remoteReferenceSHA
-                )
-            } else {
-                return .value(.upToDate)
-            }
-        }
+        return generateFromRemoteRepoWithForce(
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            gitReferenceType: gitReferenceType,
+            configurations: configurations,
+            force: force,
+            useConfigurationKey: false
+        )
     }
 
     private func performFinders(
@@ -525,41 +595,13 @@ final class DefaultEventGenerator: EventGenerator {
         generatedConfigurations: [GeneratedConfiguration],
         force: Bool
     ) throws -> Promise<EventGenerationResult> {
-        Log.info(
-            String(
-                format: "Searching remote repo reference via %d finder(s)...",
-                finderConfigurations.count
-            )
+        return try performFindersCore(
+            finderConfigurations: finderConfigurations,
+            remoteRepoConfiguration: remoteRepoConfiguration,
+            generatedConfigurations: generatedConfigurations,
+            force: force,
+            useConfigurationName: false
         )
-
-        return try remoteRepoReferenceFinder
-            .findReference(
-                configurations: finderConfigurations,
-                remoteRepoConfiguration: remoteRepoConfiguration
-            )
-            .map { gitReferenceType in
-                if let gitReferenceType {
-                    return gitReferenceType
-                } else {
-                    throw MessageError("Remote repo reference not found.")
-                }
-            }
-            .get { (gitReferenceType: GitReferenceType) in
-                Log.info(
-                    String(
-                        format: "Found remote repo reference '%@'.",
-                        gitReferenceType.rawValue
-                    )
-                )
-            }
-            .then { gitReferenceType in
-                self.generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: gitReferenceType,
-                    configurations: generatedConfigurations,
-                    force: force
-                )
-            }
     }
 
     private func generate(
@@ -581,31 +623,12 @@ final class DefaultEventGenerator: EventGenerator {
             return when(fulfilled: generationPromises).map { .success }
 
         case .remoteRepo(let remoteRepoConfiguration):
-            switch remoteRepoConfiguration.ref {
-            case .tag(let name):
-                return generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: .tag(name: name),
-                    configurations: configurations,
-                    force: force
-                )
-
-            case .branch(let name):
-                return generateFromRemoteRepo(
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    gitReferenceType: .branch(name: name),
-                    configurations: configurations,
-                    force: force
-                )
-
-            case .finders(let finders):
-                return try performFinders(
-                    finderConfigurations: finders,
-                    remoteRepoConfiguration: remoteRepoConfiguration,
-                    generatedConfigurations: configurations,
-                    force: force
-                )
-            }
+            return try handleRemoteRepoReference(
+                remoteRepoConfiguration: remoteRepoConfiguration,
+                configurations: configurations,
+                force: force,
+                useSingleConfiguration: false
+            )
         }
     }
 
