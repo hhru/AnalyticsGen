@@ -55,3 +55,4 @@ fastlane/test_output
 
 # AnalyticsGen
 analyticsgen-*.zip
+**/Generated/AnalyticsGen

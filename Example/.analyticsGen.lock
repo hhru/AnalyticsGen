@@ -1,9 +1,9 @@
-HR-Mobile:
-  sha: 40a1900a6733c3e64d1b82e1492df7b3daef711c
-  version: 0.6.0
 Applicant:
-  sha: 40a1900a6733c3e64d1b82e1492df7b3daef711c
-  version: 0.6.0
+  sha: c2a989cf8eaff197c363c3fa7d9db31439c88506
+  version: 0.6.6
 Shared:
-  sha: 40a1900a6733c3e64d1b82e1492df7b3daef711c
-  version: 0.6.0
+  sha: c2a989cf8eaff197c363c3fa7d9db31439c88506
+  version: 0.6.6
+HR-Mobile:
+  sha: c2a989cf8eaff197c363c3fa7d9db31439c88506
+  version: 0.6.6
