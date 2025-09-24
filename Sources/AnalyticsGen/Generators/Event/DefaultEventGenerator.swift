@@ -80,6 +80,20 @@ final class DefaultEventGenerator: EventGenerator {
         return parameters
     }
 
+    private func resolveEventProtocol(event: ExternalEvent) -> String {
+        let protocolName: String
+        switch event.tracker {
+            case .appsFlyer: 
+                protocolName = "AppsFlyerEvent"
+            case .appMetrica: 
+                protocolName = "AppMetricaEvent"
+            case .none: 
+                protocolName = "AllExternalAnalyticsEvent"
+        }
+
+        return protocolName
+    }
+
     private func generate(
         parameters: GenerationParameters,
         event: Event,
@@ -165,6 +179,7 @@ final class DefaultEventGenerator: EventGenerator {
                             oneOf: label.oneOf
                         )
                     },
+                    eventProtocol: resolveEventProtocol(event: externalEvent),
                     initialisationParameters: resolveExternalEventInitialisationParameters(event: externalEvent)
                 )
             )
