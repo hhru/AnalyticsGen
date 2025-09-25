@@ -9,4 +9,5 @@ struct ExternalEvent: Decodable {
     let forContractor: Bool?
     let label: ExternalEventLabel?
     let platform: EventPlatform?
+    let tracker: ExternalEventTracker?
 }

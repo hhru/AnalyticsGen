@@ -53,5 +53,6 @@ struct ExternalEventContext: Encodable {
     let schemePath: String
     let action: Action
     let label: Label?
+    let eventProtocol: String
     let initialisationParameters: [Parameter]
 }
