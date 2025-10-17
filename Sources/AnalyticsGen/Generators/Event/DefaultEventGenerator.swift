@@ -143,7 +143,8 @@ final class DefaultEventGenerator: EventGenerator {
                     hasParametersToInit: !internalEvent
                         .parameters
                         .filter { !$0.type.oneOf.isNil || !$0.type.swiftType.isNil }
-                        .isEmpty
+                        .isEmpty,
+                    isForDesignSystem: event.isForDesignSystem ?? false
                 )
             )
         }
