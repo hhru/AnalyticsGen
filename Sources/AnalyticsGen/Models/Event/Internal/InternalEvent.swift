@@ -49,6 +49,7 @@ struct InternalEvent: Decodable {
     let platform: EventPlatform?
     let sql: String?
     let parameters: [InternalEventParameter]
+    let hhtmSource: InternalEventParameter?
 
     // MARK: -
 
@@ -66,6 +67,7 @@ struct InternalEvent: Decodable {
         self.event = try container.decode(forKey: .event)
         self.platform = try container.decodeIfPresent(forKey: .platform)
         self.sql = try container.decodeIfPresent(forKey: .sql)
+        self.hhtmSource = try container.decodeIfPresent(forKey: .hhtmSource)
 
         self.parameters = try container
             .allKeys
