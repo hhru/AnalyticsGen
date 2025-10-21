@@ -14,4 +14,5 @@ struct Event: Decodable {
     let `internal`: InternalEvent?
     let name: String
     let isForDesignSystem: Bool?
+    let isDesignSystem: Bool?
 }

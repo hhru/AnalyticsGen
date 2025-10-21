@@ -145,6 +145,7 @@ final class DefaultEventGenerator: EventGenerator {
                         .filter { !$0.type.oneOf.isNil || !$0.type.swiftType.isNil }
                         .isEmpty,
                     isForDesignSystem: event.isForDesignSystem ?? false,
+                    isDesignSystem: event.isDesignSystem ?? false,
                     hhtmSource: internalEvent.hhtmSource.map { hhtmSource in
                         InternalEventContext.Parameter(
                             name: hhtmSource.name,
