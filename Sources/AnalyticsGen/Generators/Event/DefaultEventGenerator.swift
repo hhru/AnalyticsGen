@@ -143,7 +143,18 @@ final class DefaultEventGenerator: EventGenerator {
                     hasParametersToInit: !internalEvent
                         .parameters
                         .filter { !$0.type.oneOf.isNil || !$0.type.swiftType.isNil }
-                        .isEmpty
+                        .isEmpty,
+                    isForDesignSystem: event.isForDesignSystem ?? false,
+                    isDesignSystem: event.isDesignSystem ?? false,
+                    hhtmSource: internalEvent.hhtmSource.map { hhtmSource in
+                        InternalEventContext.Parameter(
+                            name: hhtmSource.name,
+                            description: hhtmSource.description,
+                            oneOf: hhtmSource.type.oneOf,
+                            const: hhtmSource.type.const,
+                            type: hhtmSource.type.swiftType
+                        )
+                    }
                 )
             )
         }

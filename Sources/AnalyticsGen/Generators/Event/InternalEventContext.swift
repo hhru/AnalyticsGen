@@ -38,4 +38,7 @@ struct InternalEventContext: Encodable {
     let schemePath: String
     let parameters: [Parameter]?
     let hasParametersToInit: Bool
+    let isForDesignSystem: Bool
+    let isDesignSystem: Bool
+    let hhtmSource: Parameter?
 }
