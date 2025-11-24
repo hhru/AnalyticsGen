@@ -4,30 +4,19 @@ import AnalyticsGenTools
 
 struct AccessTokenConfiguration: Decodable, Equatable {
 
-    // MARK: - Nested Types
-
     private enum CodingKeys: String, CodingKey {
         case environmentVariable = "env"
         case keychain
     }
 
-    // MARK: -
-
     struct KeychainParameters: Decodable, Equatable {
-
-        // MARK: - Instance Properties
-
         let service: String
         let key: String
     }
 
-    // MARK: - Instance Properties
-
     let value: String?
     let environmentVariable: String?
     let keychainParameters: KeychainParameters?
-
-    // MARK: - Initializers
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
@@ -48,11 +37,7 @@ struct AccessTokenConfiguration: Decodable, Equatable {
     }
 }
 
-// MARK: -
-
 extension AccessTokenConfiguration {
-
-    // MARK: - Instance Methods
 
     func resolveToken() throws -> String {
         if let value = value {
@@ -68,6 +53,6 @@ extension AccessTokenConfiguration {
             }
         }
 
-        throw MessageError("GitHub access token not found.")
+        throw MessageError("Access token not found.")
     }
 }

@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,17 +6,16 @@ import PackageDescription
 let package = Package(
     name: "AnalyticsGen",
     platforms: [
-       .macOS(.v10_12)
+       .macOS(.v10_15)
     ],
     products: [
         .executable(name: "analyticsgen", targets: ["AnalyticsGen"]),
         .library(name: "AnalyticsGenTools", targets: ["AnalyticsGenTools"])
     ],
     dependencies: [
-        .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.3"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.0"),
         .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.1"),
         .package(url: "https://github.com/onevcat/Rainbow", from: "3.0.0"),
-        .package(url: "https://github.com/mxcl/PromiseKit", from: "6.8.0"),
         .package(url: "https://github.com/kylef/Stencil.git", from: "0.15.1"),
         .package(url: "https://github.com/SwiftGen/StencilSwiftKit.git", from: "2.10.1"),
         .package(url: "https://github.com/almazrafi/DictionaryCoder.git", from: "1.0.4"),
@@ -26,26 +25,28 @@ let package = Package(
         .package(url: "https://github.com/kishikawakatsumi/KeychainAccess.git", from: "4.2.2")
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "AnalyticsGen",
             dependencies: [
                 "AnalyticsGenTools",
-                "SwiftCLI",
-                "PathKit",
-                "Rainbow",
-                "PromiseKit",
-                "Stencil",
-                "StencilSwiftKit",
-                "DictionaryCoder",
-                "Yams",
-                "JSONSchema",
-                "ZIPFoundation",
-                "KeychainAccess"
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "PathKit", package: "PathKit"),
+                .product(name: "Rainbow", package: "Rainbow"),
+                .product(name: "Stencil", package: "Stencil"),
+                .product(name: "StencilSwiftKit", package: "StencilSwiftKit"),
+                .product(name: "DictionaryCoder", package: "DictionaryCoder"),
+                .product(name: "Yams", package: "Yams"),
+                .product(name: "JSONSchema", package: "jsonschema.swift"),
+                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
+                .product(name: "KeychainAccess", package: "KeychainAccess")
             ]
         ),
         .target(
             name: "AnalyticsGenTools",
-            dependencies: ["SwiftCLI", "PathKit"]
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "PathKit", package: "PathKit")
+            ]
         ),
         .testTarget(
             name: "AnalyticsGenTests",

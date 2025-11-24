@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AnalyticsGen}",
+            "name": "Debug analyticsgen",
+            "program": "${workspaceFolder:AnalyticsGen}/.build/debug/analyticsgen",
+            "preLaunchTask": "swift: Build Debug analyticsgen"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AnalyticsGen}",
+            "name": "Release analyticsgen",
+            "program": "${workspaceFolder:AnalyticsGen}/.build/release/analyticsgen",
+            "preLaunchTask": "swift: Build Release analyticsgen"
+        }
+    ]
+}

@@ -1,8 +1,4 @@
-import PromiseKit
-
 protocol FileProvider {
-
-    // MARK: - Instance Methods
 
     func readFile<FileContent: Decodable>(at path: String) throws -> FileContent
     func readFile<FileContent: Decodable>(at path: String, type: FileContent.Type) throws -> FileContent
@@ -14,8 +10,6 @@ protocol FileProvider {
 }
 
 extension FileProvider {
-
-    // MARK: - Instance Methods
 
     func readFile<FileContent: Decodable>(at path: String, type: FileContent.Type) throws -> FileContent {
         try readFile(at: path)

@@ -1,9 +1,6 @@
 import Foundation
-import PromiseKit
 
 protocol EventGenerator {
 
-    // MARK: - Instance Methods
-
-    func generate(configuration: Configuration, force: Bool) -> Promise<EventGenerationResult>
+    func generate(configuration: Configuration, branch: String?) async throws
 }
