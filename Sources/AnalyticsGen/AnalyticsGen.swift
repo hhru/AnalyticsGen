@@ -22,7 +22,11 @@ struct AnalyticsGen: AsyncParsableCommand {
 
         func run() async throws {
             #if DEBUG
-            Path.current = Path(#file).appending("../../../Example")
+            if let currentPath = ProcessInfo.processInfo.environment["CURRENT_PATH"] {
+                Path.current = Path(currentPath)
+            } else {
+                Path.current = Path(#file).appending("../../../Example")
+            }
             #endif
 
             let fileProvider = Dependencies.yamlFileProvider

@@ -1,8 +1,9 @@
-import Foundation
-import Yams
 import AnalyticsGenTools
-import JSONSchema
 import DictionaryCoder
+import Foundation
+import JSONSchema
+import PathKit
+import Yams
 
 final class DefaultEventGenerator {
 
@@ -67,12 +68,12 @@ final class DefaultEventGenerator {
     private func resolveEventProtocol(event: ExternalEvent) -> String {
         let protocolName: String
         switch event.tracker {
-            case .appsFlyer: 
-                protocolName = "AppsFlyerEvent"
-            case .appMetrica: 
-                protocolName = "AppMetricaEvent"
-            case .none: 
-                protocolName = "AllExternalAnalyticsEvent"
+        case .appsFlyer:
+            protocolName = "AppsFlyerEvent"
+        case .appMetrica:
+            protocolName = "AppMetricaEvent"
+        case .none:
+            protocolName = "AllExternalAnalyticsEvent"
         }
 
         return protocolName
@@ -197,7 +198,7 @@ final class DefaultEventGenerator {
             .filter { $0.pathExtension == .yamlExtension }
             .map { url in
                 let basePathComponents = schemasPath.pathComponents
-                
+
                 let filePathComponents = url
                     .pathComponents
                     .drop(while: basePathComponents.contains(_:))
@@ -207,7 +208,7 @@ final class DefaultEventGenerator {
                 Log.debug("(\(configuration.name)) Reading schema: \(filePath)")
 
                 do {
-                    return (try fileProvider.readFile(at: url.path), Array(filePathComponents))
+                    return try (fileProvider.readFile(at: url.path), Array(filePathComponents))
                 } catch {
                     Log.fail("Failed schema: \(filePath)")
                     throw error
@@ -234,6 +235,72 @@ final class DefaultEventGenerator {
             }
         }
     }
+
+    private func isBranchBehind(
+        repoPath: String,
+        currentBranch: String?,
+        baseBranch: String
+    ) throws -> Bool {
+        try shell("cd \(repoPath) && git fetch origin \(baseBranch)")
+
+        let branch: String
+
+        if let currentBranch = currentBranch {
+            branch = currentBranch
+        } else {
+            branch = try shell("cd \(repoPath) && git rev-parse --abbrev-ref HEAD")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        let output = try shell("cd \(repoPath) && git rev-list --count \(branch)..origin/\(baseBranch)")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let commitsBehind = Int(output), commitsBehind > 0 {
+            Log.debug("Branch '\(branch)' is behind 'origin/\(baseBranch)' by \(commitsBehind) commit(s)")
+            return true
+        }
+
+        return false
+    }
+
+    private func validateGitBranches(
+        currentRepoPath: String,
+        analyticsRepoPath: String,
+        analyticsBaseBranch: String
+    ) throws {
+        Log.info("Validating git branches...")
+
+        let isCurrentBehindDevelop = try isBranchBehind(
+            repoPath: currentRepoPath,
+            currentBranch: nil,
+            baseBranch: "develop"
+        )
+
+        let isAnalyticsBehind = try isBranchBehind(
+            repoPath: analyticsRepoPath,
+            currentBranch: nil,
+            baseBranch: analyticsBaseBranch
+        )
+
+        if !isCurrentBehindDevelop, isAnalyticsBehind {
+            throw MessageError(
+                """
+                ❌ Analytics branch is behind '\(analyticsBaseBranch)'.
+                Please update the analytics branch before generating code.
+                """
+            )
+        }
+
+        if isCurrentBehindDevelop {
+            Log.debug("⚠️ Current branch is behind 'develop', but continuing anyway...")
+        }
+
+        if isAnalyticsBehind, isCurrentBehindDevelop {
+            Log.debug("⚠️ Both branches are behind their base branches, but continuing anyway...")
+        }
+
+        Log.info("✅ Git branch validation passed")
+    }
 }
 
 // MARK: - EventGenerator
@@ -242,9 +309,9 @@ extension DefaultEventGenerator: EventGenerator {
 
     func generate(configuration: Configuration, branch: String?) async throws {
         switch configuration.source {
-        case .local(let path):
+        case let .local(path):
             Log.info("Using local schemas: \(path)")
-            
+
             try await configuration.generatedConfigurations.concurrentForEach { generatedConfiguration in
                 try self.generate(
                     configuration: generatedConfiguration,
@@ -252,15 +319,21 @@ extension DefaultEventGenerator: EventGenerator {
                 )
             }
 
-        case .remoteRepo(let repoConfiguration):
+        case let .remoteRepo(repoConfiguration):
             let branchName = "\(branch ?? repoConfiguration.defaultBranch)-\(repoConfiguration.branchSuffix)"
             Log.info("Using remote repository: \(repoConfiguration.owner)/\(repoConfiguration.repo) (branch: \(branchName))")
-            
+
             let repoLocalURL = try await remoteRepoProvider.fetchRepo(
                 owner: repoConfiguration.owner,
                 repo: repoConfiguration.repo,
                 ref: .branch(name: branchName),
                 token: repoConfiguration.accessToken.resolveToken()
+            )
+
+            try validateGitBranches(
+                currentRepoPath: Path.current.string,
+                analyticsRepoPath: repoLocalURL.path,
+                analyticsBaseBranch: "\(repoConfiguration.defaultBranch)-\(repoConfiguration.branchSuffix)"
             )
 
             try await configuration.generatedConfigurations.concurrentForEach { generatedConfiguration in
@@ -290,12 +363,11 @@ extension DefaultEventGenerator: GenerationParametersResolving {
     }
 }
 
-
 private extension RenderDestination {
 
     func appending(path: String) -> Self {
         switch self {
-        case .file(let filePath):
+        case let .file(filePath):
             return .file(path: filePath.appending("/\(path)"))
 
         case .console:
