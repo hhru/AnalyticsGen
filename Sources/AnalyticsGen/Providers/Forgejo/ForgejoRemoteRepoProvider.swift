@@ -36,7 +36,7 @@ struct ForgejoRemoteRepoProvider {
         }
 
         Log.debug("Updating Git cache repository...")
-        try shell("cd \(gitCachePath) && git fetch --all --tags --prune")
+        try shell("cd \(gitCachePath) && git fetch --all --tags --prune --force")
 
         return gitCachePath
     }
