@@ -1,4 +1,4 @@
-source: "schemas/applicant"
+source: schemas
 template:
   internal:
     options:
@@ -6,3 +6,6 @@ template:
   external:
     options:
       publicAccess: true
+targets:
+  - name: Applicant
+    path: applicant

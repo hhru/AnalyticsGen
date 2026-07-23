@@ -14,10 +14,11 @@ public func shell(_ command: String) throws -> String {
     Log.debug("shell(\(command))")
 
     try task.run()
-    task.waitUntilExit()
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)!
+
+    task.waitUntilExit()
 
     if task.terminationStatus != 0 {
         throw NSError(

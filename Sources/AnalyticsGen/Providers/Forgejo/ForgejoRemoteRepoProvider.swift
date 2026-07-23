@@ -1,149 +1,82 @@
-import Foundation
-import PromiseKit
 import AnalyticsGenTools
+import Foundation
+import PathKit
 import ZIPFoundation
 
-struct ForgejoRemoteRepoProvider: RemoteRepoProvider {
+struct ForgejoRemoteRepoProvider {
 
     let baseURL: URL
-    let httpService: HTTPService
 
-    init(
-        baseURL: URL,
-        httpService: HTTPService
-    ) {
+    init(baseURL: URL) {
         self.baseURL = baseURL
-        self.httpService = httpService
     }
-    
-    // MARK: - RemoteRepoProvider
-    
-    func fetchRepo(owner: String, repo: String, ref: GitReferenceType, token: String, key: String) -> Promise<URL> {
-        perform(on: .global()) {
-            Log.debug("Checking out source code from Forgejo...")
 
-            let host = try baseURL.host.throwing()
-            let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
+    /// Создает и обновляет локальный Git кэш для ускорения клонирования
+    /// - Parameters:
+    ///   - gitRepositoryURL: URL Git репозитория
+    ///   - owner: Владелец репозитория
+    ///   - repo: Название репозитория
+    /// - Returns: Путь к директории кэша
+    private func setupAndUpdateGitCache(
+        gitRepositoryURL: String,
+        owner: String,
+        repo: String
+    ) throws -> Path {
+        let gitCachePath = Path.home
+            .appending("Library/Caches/ru.hh.analyticsgen/git")
+            .appending(owner)
+            .appending("\(repo).git")
 
-            let tempURL = FileManager.default.temporaryDirectory
-            let privateTempURL = URL(fileURLWithPath: "/private" + tempURL.path)
+        if !gitCachePath.exists {
+            Log.debug("Creating Git cache repository at \(gitCachePath)...")
 
-            let repositoryPathURL = privateTempURL.appendingPathComponent("\(repo)-\(key)")
-            let repositoryPath = repositoryPathURL.path
+            try gitCachePath.parent().mkpath()
 
-            if FileManager.default.directoryExists(atPath: repositoryPath) {
-                Log.debug("Cleaning repository directory...")
-                try FileManager.default.removeItem(atPath: repositoryPath)
-            }
-
-            Log.debug("Cloning repository...")
-            switch ref {
-            case .tag(let name), .branch(let name):
-                if ProcessInfo.processInfo.environment["ANALYTICS_GEN_EXPERIMENTAL_MERGE"] == "true" &&
-                    ProcessInfo.processInfo.environment["CHANGE_TARGET"] == "develop"
-                {
-                    Log.debug("Trying to merge master into user branch")
-                    try shell("git clone -b \(name) \(gitRepositoryURL) \(repositoryPath)")
-                    try shell("cd \(repositoryPath) && git fetch origin refs/heads/master:refs/remotes/origin/master")
-                    try shell("cd \(repositoryPath) && git merge origin/master --no-edit")
-                } else {
-                    try shell("git clone --depth 1 -b \(name) \(gitRepositoryURL) \(repositoryPath)")
-                }
-            case .commit(let sha):
-                try shell("git clone \(gitRepositoryURL) \(repositoryPath)")
-
-                Log.debug("Checking out \(sha) commit...")
-                try shell("cd \(repositoryPath) && git checkout \(sha)")
-            }
-
-            return repositoryPathURL
+            try shell("git clone --bare \(gitRepositoryURL) \(gitCachePath)")
         }
+
+        Log.debug("Updating Git cache repository...")
+        try shell("cd \(gitCachePath) && git fetch --all --tags --prune --force")
+
+        return gitCachePath
     }
-    
-    func fetchReference(owner: String, repo: String, ref: String, token: String) -> Promise<GitReference> {
-        let refURL = baseURL
-            .appendingPathComponent("repos")
-            .appendingPathComponent(owner)
-            .appendingPathComponent(repo)
-            .appendingPathComponent("git/refs")
-            .appendingPathComponent(ref)
-        
-        return Promise { seal in
-            httpService
-                .request(
-                    route: HTTPRoute(
-                        method: .get,
-                        url: refURL,
-                        headers: [.authorization(bearerToken: token)]
-                    )
-                )
-                .responseDecodable(type: [GitReference].self) { httpResponse in
-                    switch httpResponse.result {
-                    case .success(let result):
-                        seal.fulfill(result[0])
-                        
-                    case .failure(let error):
-                        seal.reject(error)
-                    }
-                }
+}
+
+extension ForgejoRemoteRepoProvider: RemoteRepoProvider {
+
+    func fetchRepo(owner: String, repo: String, ref: GitReferenceType, token: String) async throws -> URL {
+        Log.debug("Checking out source code from Forgejo...")
+
+        let host = try baseURL.host.throwing()
+        let gitRepositoryURL = "git@\(host):\(owner)/\(repo).git"
+
+        let repositoryPath = Path("/private")
+            .appending(FileManager.default.temporaryDirectory.path)
+            .appending(repo)
+
+        if repositoryPath.exists {
+            Log.debug("Cleaning repository directory...")
+            try repositoryPath.delete()
         }
-    }
-    
-    func fetchTagList(owner: String, repo: String, count: Int, token: String) -> Promise<[String]> {
-        let requestURL = baseURL
-            .appendingPathComponent("repos")
-            .appendingPathComponent(owner)
-            .appendingPathComponent(repo)
-            .appendingPathComponent("tags")
-        
-        return Promise { seal in
-            httpService
-                .request(
-                    route: HTTPRoute(
-                        method: .get,
-                        url: requestURL,
-                        headers: [.authorization(bearerToken: token)],
-                        queryParameters: ForgejoQueryCount(limit: count)
-                    )
-                )
-                .responseDecodable(type: [ForgejoRef].self) { httpResponse in
-                    switch httpResponse.result {
-                    case .success(let response):
-                        seal.fulfill(response.map { $0.name })
-                        
-                    case .failure(let error):
-                        seal.reject(error)
-                    }
-                }
+
+        let gitCachePath = try setupAndUpdateGitCache(
+            gitRepositoryURL: gitRepositoryURL,
+            owner: owner,
+            repo: repo
+        )
+
+        Log.debug("Cloning repository with cache reference...")
+        switch ref {
+        case let .tag(name), let .branch(name):
+            try shell("git clone --reference \(gitCachePath) -b \(name) \(gitRepositoryURL) \(repositoryPath)")
+
+        case let .commit(sha):
+            try shell("git clone --reference \(gitCachePath) \(gitRepositoryURL) \(repositoryPath)")
+
+            Log.debug("Checking out \(sha) commit...")
+            try shell("cd \(repositoryPath) && git checkout \(sha)")
         }
-    }
-    
-    func fetchLastCommitSHA(owner: String, repo: String, branch: String, token: String) -> Promise<String> {
-        let lastCommitURL = baseURL
-            .appendingPathComponent("repos")
-            .appendingPathComponent(owner)
-            .appendingPathComponent(repo)
-            .appendingPathComponent("git/commits")
-            .appendingPathComponent(branch)
-        
-        return Promise { seal in
-            httpService
-                .request(
-                    route: HTTPRoute(
-                        method: .get,
-                        url: lastCommitURL,
-                        headers: [.authorization(bearerToken: token)]
-                    )
-                )
-                .responseDecodable(type: ForgejoCommit.self) { httpResponse in
-                    switch httpResponse.result {
-                    case .success(let commit):
-                        seal.fulfill(commit.sha)
-                        
-                    case .failure(let error):
-                        seal.reject(error)
-                    }
-                }
-        }
+
+        return repositoryPath.url
     }
 }

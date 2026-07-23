@@ -63,6 +63,28 @@ extension HTTPTask {
         return response != nil
     }
 
+    // MARK: - Async/Await
+
+    /// Асинхронно дожидается ответа с сырыми данными.
+    public func responseData() async -> HTTPResponse<Data> {
+        await withCheckedContinuation { continuation in
+            responseData(on: .global()) { response in
+                continuation.resume(returning: response)
+            }
+        }
+    }
+
+    /// Асинхронно дожидается ответа, сериализованного переданным serializer'ом.
+    public func response<Serializer: HTTPResponseSerializer>(
+        serializer: Serializer
+    ) async -> HTTPResponse<Serializer.SerializedObject> {
+        await withCheckedContinuation { continuation in
+            response(on: .global(), serializer: serializer) { response in
+                continuation.resume(returning: response)
+            }
+        }
+    }
+
     // MARK: - Instance Methods
 
     @discardableResult

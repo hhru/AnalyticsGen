@@ -1,12 +1,12 @@
 PREFIX?=/usr/local
 
 PRODUCT_NAME=analyticsgen
-PRODUCT_VERSION=0.6.11
+PRODUCT_VERSION=0.6.10
 TEMPLATES_NAME=Templates
 README_NAME=README.md
 LICENSE_NAME=LICENSE
 
-SOURCES_MAIN_PATH=Sources/AnalyticsGen/main.swift
+SOURCES_ANALYTICS_GEN_PATH=Sources/AnalyticsGen/AnalyticsGen.swift
 
 BUILD_PATH=.build
 RELEASE_PATH=$(BUILD_PATH)/release/$(PRODUCT_NAME)-$(PRODUCT_VERSION)
@@ -26,7 +26,7 @@ build:
 	swift build --disable-sandbox -c release
 
 update_version:
-	sed -i '' 's|\(let version = "\)\(.*\)\("\)|\1$(PRODUCT_VERSION)\3|' $(SOURCES_MAIN_PATH)
+	sed -i '' 's|\(let version = "\)\(.*\)\("\)|\1$(PRODUCT_VERSION)\3|' $(SOURCES_ANALYTICS_GEN_PATH)
 
 release: update_version build
 	mkdir -p $(RELEASE_PATH)

@@ -2,8 +2,6 @@ import Foundation
 
 struct Event: Decodable {
 
-    // MARK: - Instance Properties
-
     let edition: [EventEdition]?
     let deprecated: Bool?
     let category: String
@@ -12,6 +10,12 @@ struct Event: Decodable {
     let external: ExternalEvent?
     let `internal`: InternalEvent?
     let name: String
-    let isForDesignSystem: Bool?
-    let isDesignSystem: Bool?
+    let iOSGenerationFlags: [GenerationFlag]?
+
+    var isForDesignSystem: Bool? {
+        iOSGenerationFlags?.contains(.isForDesignSystem)
+    }
+    var isDesignSystem: Bool? {
+        iOSGenerationFlags?.contains(.isDesignSystem)
+    }
 }

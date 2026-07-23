@@ -2,38 +2,8 @@ source:
  remoteRepo:
     owner: hhru
     repo: hh-mobile-analytics
-    ref:
-      finders:
-        - type: matched_tag
-          source:
-            env:
-              - GIT_BRANCH
-              - GIT_MERGE_BRANCH
-            condition:
-              type: regex
-              value: ^PORTFOLIO-\d+$
-          branch_regex: PORTFOLIO-\d+
-        - type: matched_tag
-          source:
-            file:
-              - Configurations/Personal.xcconfig
-            condition:
-              type: regex
-              value: ^ANALYTICS_REF = (PORTFOLIO-\d+)$
-          branch_regex: PORTFOLIO-\d+
-        - type: matched_tag
-          source:
-            git: current_branch_name
-            condition:
-              type: regex
-              value: ^PORTFOLIO-\d+$
-          branch_regex: PORTFOLIO-\d+
-        - type: last_merged
-          merge_commit_count: 100
-          branch_regex: PORTFOLIO-\d+
-        - type: last_tag
-        - type: last_commit
-          branch: master
+    defaultBranch: develop
+    branchSuffix: ios
     accessToken:
       env: GIT_REMOTE_API_TOKEN
       keychain:

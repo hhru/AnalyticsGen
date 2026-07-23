@@ -27,23 +27,3 @@ enum SourceConfiguration: Decodable, Equatable {
         }
     }
 }
-
-extension SourceConfiguration {
-
-    init(source: SourceConfiguration, target: Target) {
-        switch source {
-        case .local:
-            self = source
-        case let .remoteRepo(configuration: configuration):
-            self = .remoteRepo(
-                configuration: RemoteRepoSourceConfiguration(
-                    owner: configuration.owner,
-                    repo: configuration.repo,
-                    path: target.path ?? configuration.path,
-                    ref: target.ref ?? configuration.ref,
-                    accessToken: configuration.accessToken
-                )
-            )
-        }
-    }
-}

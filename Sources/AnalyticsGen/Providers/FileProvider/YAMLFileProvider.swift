@@ -1,15 +1,10 @@
 import Yams
-import PromiseKit
 import PathKit
 
 struct YAMLFileProvider: FileProvider {
 
-    // MARK: - Instance Properties
-
     private let decoder = YAMLDecoder()
     private let encoder = YAMLEncoder()
-
-    // MARK: - YAMLProvider
 
     func readFile<FileContent: Decodable>(at path: String) throws -> FileContent {
         let path = Path(path)

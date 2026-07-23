@@ -2,18 +2,12 @@ import Foundation
 
 enum EventPlatform: String, Decodable {
 
-    // MARK: - Enumeration Cases
-
     case android = "Android"
     case iOSAndroid = "Android/iOS"
     case iOS
 }
 
-// MARK: -
-
 extension EventPlatform: Equatable {
-
-    // MARK: - Type Methods
 
     static func == (lhs: EventPlatform, rhs: EventPlatform) -> Bool {
         switch (lhs, rhs) {

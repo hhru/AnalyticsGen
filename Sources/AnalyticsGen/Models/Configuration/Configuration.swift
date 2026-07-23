@@ -2,34 +2,28 @@ import Foundation
 import AnalyticsGenTools
 
 struct Configuration: Decodable, Equatable {
+
     let source: SourceConfiguration
-    let remoteHost: String?
-    let destination: String?
     let platform: EventPlatform?
     let template: TemplateConfiguration?
-    let targets: [Target]?
+    let targets: [Target]
 
-    var configurations: [GeneratedConfiguration] {
-        if let targets = targets {
-            return targets.map { target in
-                GeneratedConfiguration(
-                    source: SourceConfiguration(source: source, target: target),
-                    destination: target.destination ?? destination,
-                    platform: target.platform ?? platform,
-                    template: template,
-                    name: target.name
-                )
-            }
-        } else {
-            return [
-                GeneratedConfiguration(
-                    source: source,
-                    destination: destination,
-                    platform: platform,
-                    template: template,
-                    name: "Main"
-                )
-            ]
+    var destinations: [String] {
+        var seenDestinations = Set<String>()
+        return targets
+            .compactMap(\.destination)
+            .filter { seenDestinations.insert($0).inserted }
+    }
+
+    var generatedConfigurations: [GeneratedConfiguration] {
+        targets.map { target in
+            GeneratedConfiguration(
+                name: target.name,
+                path: target.path,
+                destination: target.destination,
+                platform: platform,
+                template: template
+            )
         }
     }
 }
