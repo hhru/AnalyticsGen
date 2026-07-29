@@ -9,3 +9,4 @@ template:
 targets:
   - name: Applicant
     path: applicant
+    destination: Generated/AnalyticsGen
